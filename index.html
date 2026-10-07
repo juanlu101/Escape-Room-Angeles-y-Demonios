@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ángeles y Demonios</title>
+<meta name="description" content="Escape room para 4.º de ESO: seguid el Camino de la Iluminación por Roma antes de que se agote la batería del contenedor de antimateria.">
+<meta name="author" content="Juan Luis Torralbo Muñoz">
+<meta name="theme-color" content="#14100E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Cpath d='M40 4 76 40 40 76 4 40Z' fill='%2314100E' stroke='%23C9A45C' stroke-width='4'/%3E%3Ccircle cx='40' cy='40' r='9' fill='%23C8423A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --marble:#14100E;
+  --marble-2:#1D1714;
+  --marble-3:#2A221D;
+  --stone:#ECE3D2;
+  --stone-2:#D9CBAF;
+  --stone-ink:#2B211A;
+  --stone-soft:#5E5043;
+  --gilt:#C9A45C;
+  --gilt-hi:#E8CD8E;
+  --gilt-lo:#7D6331;
+  --cardinal:#9B1C1C;
+  --cardinal-hi:#C8423A;
+  --wax:#F6E7B8;
+  --cern:#64E1EE;
+  --cern-lo:#1D5C66;
+  --smoke:#A89C8E;
+  --ok:#8DB872;
+  --display:'Cormorant Garamond', Garamond, Georgia, serif;
+  --serif:'Alegreya', Georgia, 'Times New Roman', serif;
+  --mono:'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --hdr:78px;
+  --aside:430px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;color:var(--stone);font-family:var(--serif);font-size:17.5px;line-height:1.62;
+  background:var(--marble);-webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(ellipse 70% 55% at 15% 0%, rgba(201,164,92,.10), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 100% 100%, rgba(155,28,28,.16), transparent 65%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 1000' preserveAspectRatio='xMidYMid slice'%3E%3Cg fill='none' stroke='%23E8DCC6' stroke-linecap='round'%3E%3Cpath d='M-50 180C200 140 330 260 520 230S860 120 1010 210 1350 330 1650 260' stroke-opacity='.07' stroke-width='1.4'/%3E%3Cpath d='M-40 620C160 560 260 700 470 650S760 520 980 600 1300 760 1660 690' stroke-opacity='.06' stroke-width='1.1'/%3E%3Cpath d='M300 -20C340 160 250 300 380 470S420 760 560 1020' stroke-opacity='.05' stroke-width='.9'/%3E%3Cpath d='M1180 -30C1120 140 1240 280 1150 450S1210 760 1080 1030' stroke-opacity='.05' stroke-width='.9'/%3E%3Cpath d='M520 230C600 300 590 380 700 420M1010 210C1060 290 1150 300 1180 380M470 650C520 720 640 730 690 820' stroke-opacity='.045' stroke-width='.7'/%3E%3Cpath d='M-30 880C220 840 420 930 700 880S1200 800 1640 900' stroke-opacity='.05' stroke-width='1'/%3E%3C/g%3E%3C/svg%3E") center/cover no-repeat,
+    var(--marble);
+}
+#embers{position:fixed;inset:0;z-index:-1;pointer-events:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gilt-hi);outline-offset:3px}
+.hidden{display:none !important}
+strong{font-weight:700}
+em{font-style:italic}
+
+/* Botones */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5em;min-height:46px;padding:.5em 1.4em;border-radius:2px;
+  font-family:var(--display);font-weight:700;font-size:1.18rem;letter-spacing:.03em;
+  background:linear-gradient(180deg,#D9B66C,#A9843F);color:#22170B;border:1px solid var(--gilt-hi);
+  box-shadow:inset 0 1px 0 rgba(255,245,215,.55),0 2px 0 var(--gilt-lo);transition:filter .15s,transform .08s}
+.btn:hover{filter:brightness(1.07)}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{filter:grayscale(.7) brightness(.65);cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--gilt-hi);border-color:var(--gilt-lo);box-shadow:none}
+.btn.ghost:hover{background:rgba(201,164,92,.1);border-color:var(--gilt)}
+.btn.red{background:linear-gradient(180deg,var(--cardinal-hi),var(--cardinal));color:#FBEFE6;border-color:#E2645B;box-shadow:inset 0 1px 0 rgba(255,210,200,.3),0 2px 0 #4D0D0D}
+.btn.small{min-height:38px;padding:.3em 1em;font-size:1.02rem}
+.iconbtn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:rgba(20,16,14,.8);border:1px solid var(--gilt-lo);color:var(--gilt-hi);position:relative}
+.iconbtn:hover{border-color:var(--gilt)}
+.iconbtn svg{width:22px;height:22px}
+.badge{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;border-radius:10px;background:var(--cardinal-hi);color:#fff;font:700 12px/20px var(--serif);text-align:center;padding:0 5px}
+.badge:empty{display:none}
+.field{width:100%;min-height:48px;padding:.5em .8em;border-radius:2px;background:rgba(10,8,7,.7);border:1px solid var(--gilt-lo);color:var(--stone);font-family:var(--serif);font-size:1.08rem}
+.field:focus{outline:none;border-color:var(--gilt-hi);box-shadow:0 0 0 3px rgba(232,205,142,.16)}
+.field::placeholder{color:#857A6E}
+.field.mono{font-family:var(--mono);font-size:1rem}
+.field.shake{animation:shake .4s;border-color:var(--cardinal-hi)}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+
+/* Piedra y oro */
+.slab{position:relative;background:linear-gradient(180deg,rgba(42,34,29,.92),rgba(26,21,18,.96));border:1px solid rgba(201,164,92,.35);
+  box-shadow:0 0 0 1px rgba(0,0,0,.6),0 24px 60px rgba(0,0,0,.5)}
+.slab::before{content:"";position:absolute;inset:6px;border:1px solid rgba(201,164,92,.16);pointer-events:none}
+.parch{background:radial-gradient(ellipse at 15% 10%,rgba(255,255,255,.4),transparent 55%),radial-gradient(ellipse at 90% 95%,rgba(120,85,40,.18),transparent 55%),var(--stone);
+  color:var(--stone-ink);box-shadow:0 12px 30px rgba(0,0,0,.45)}
+.ornament{display:block;margin:0 auto;color:var(--gilt)}
+.muted{color:var(--smoke);font-size:.95rem}
+
+/* ═════ Portada ═════ */
+#intro{min-height:100vh;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.9fr);gap:56px;align-items:center;max-width:1180px;margin:0 auto;padding:56px 24px}
+.title-block .mark{width:76px;height:76px;margin-bottom:18px}
+.title-block h1{margin:0;font-family:var(--display);font-weight:600;font-style:italic;font-size:clamp(3.2rem,8vw,6.4rem);line-height:.9;color:var(--stone);letter-spacing:-.01em}
+.title-block h1 span{display:block;color:var(--gilt-hi);font-style:normal;font-weight:500;font-size:.42em;letter-spacing:.16em;margin-top:.5em}
+.story{margin-top:28px;max-width:58ch;color:#DCD1BE}
+.story p{margin:0 0 .9em}
+.story p:first-child::first-letter{font-family:var(--display);font-size:3.6em;float:left;line-height:.8;margin:6px 10px 0 0;color:var(--gilt)}
+.signal{padding:28px 28px 26px}
+.signal h2{margin:0;font-family:var(--display);font-weight:600;font-size:1.7rem;color:var(--gilt-hi)}
+.signal .sub{color:var(--smoke);font-style:italic;margin:0 0 18px}
+.coords{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;padding:16px 18px;background:#071214;border:1px solid var(--cern-lo);font-family:var(--mono);color:var(--cern);text-shadow:0 0 12px rgba(100,225,238,.45);margin-bottom:20px}
+.coords span{color:#5C8C92;font-size:.85rem;align-self:center}
+.coords b{font-weight:500;font-size:1.5rem;letter-spacing:.06em}
+.signal label{display:block;font-family:var(--display);font-weight:700;font-size:1.15rem;margin:.2rem 0 .35rem}
+.signal .btn{width:100%;margin-top:14px;min-height:54px;font-size:1.3rem}
+.rules{margin:20px 0 0;padding:16px 0 0;border-top:1px solid rgba(201,164,92,.25);list-style:none;font-size:.95rem;color:#CFC3AE}
+.rules li{position:relative;padding-left:20px;margin:.35em 0}
+.rules li::before{content:"";position:absolute;left:0;top:.55em;width:8px;height:8px;border:1px solid var(--gilt);transform:rotate(45deg)}
+.credit{grid-column:1/-1;text-align:center;color:#8E8275;font-style:italic;user-select:none;margin-top:-20px}
+
+/* ═════ Cabecera ═════ */
+#hdr{position:sticky;top:0;z-index:50;height:var(--hdr);display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center;padding:0 20px;
+  background:linear-gradient(180deg,rgba(14,11,10,.97),rgba(22,18,15,.95));border-bottom:1px solid rgba(201,164,92,.35);box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.brand{display:flex;align-items:center;gap:12px;cursor:default;user-select:none}
+.brand svg{width:40px;height:40px}
+.brand b{font-family:var(--display);font-style:italic;font-weight:600;font-size:1.4rem;color:var(--stone);line-height:1}
+.brand small{display:block;color:var(--smoke);font-size:.85rem;line-height:1.2;margin-top:2px}
+.altars{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+.altars span{min-width:34px;height:34px;padding:0 4px;display:grid;place-items:center;border:1px solid rgba(201,164,92,.35);font-family:var(--display);font-weight:700;font-size:1rem;color:#7F7366;background:rgba(10,8,7,.5)}
+.altars span.done{background:var(--gilt);color:#22170B;border-color:var(--gilt-hi)}
+.altars span.now{border-color:var(--cardinal-hi);color:var(--wax);box-shadow:0 0 0 1px var(--cardinal-hi),0 0 16px rgba(200,66,58,.5)}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.canister{display:flex;align-items:center;gap:10px;padding:5px 14px 5px 8px;border:1px solid var(--cern-lo);border-radius:28px;background:#061012;position:relative}
+.canister .vial{width:16px;height:38px;border-radius:8px;border:1px solid #3C7C85;position:relative;overflow:hidden;background:#0A1C1F}
+.canister .vial i{position:absolute;left:4px;right:4px;top:50%;height:8px;margin-top:-4px;border-radius:50%;background:var(--cern);box-shadow:0 0 10px 3px rgba(100,225,238,.7);animation:float 3s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-6px)}}
+.seg7{display:flex;gap:3px;align-items:center}
+.seg7 svg{display:block}
+.seg7 .on{fill:var(--cern);filter:drop-shadow(0 0 3px rgba(100,225,238,.8))}
+.seg7 .off{fill:#0F2A2E}
+.canister.warn .seg7 .on{fill:#F2B45A;filter:drop-shadow(0 0 3px rgba(242,180,90,.8))}
+.canister.danger .seg7 .on{fill:#FF6B5E;filter:drop-shadow(0 0 4px rgba(255,107,94,.9))}
+.canister.danger{animation:alarm 1s infinite}
+@keyframes alarm{50%{box-shadow:0 0 0 2px rgba(255,107,94,.5)}}
+.colon{width:4px;display:flex;flex-direction:column;gap:9px}
+.colon i{width:4px;height:4px;background:var(--cern);box-shadow:0 0 4px var(--cern)}
+.penalty-fly{position:absolute;right:8px;top:100%;font-family:var(--mono);color:#FF8A7E;font-size:1rem;white-space:nowrap;animation:fly 1.7s ease-out forwards;pointer-events:none}
+@keyframes fly{0%{opacity:0;transform:translateY(-6px)}15%{opacity:1}100%{opacity:0;transform:translateY(24px)}}
+#mapToggle{display:none}
+
+/* ═════ Disposición de juego ═════ */
+#game{display:grid;grid-template-columns:minmax(0,1fr) var(--aside);min-height:calc(100vh - var(--hdr))}
+#stage{padding:34px 34px 120px;min-width:0}
+.stage-inner{max-width:880px;margin:0 auto}
+.kicker{font-family:var(--mono);font-size:.82rem;color:var(--cern);letter-spacing:.04em}
+.stage-title{margin:.1em 0 .25em;font-family:var(--display);font-weight:600;font-size:clamp(2rem,4vw,3rem);line-height:1.05;color:var(--stone)}
+.where{font-family:var(--display);font-style:italic;font-size:1.25rem;color:var(--gilt-hi)}
+.narr{font-size:1.1rem;color:#DCD1BE;max-width:68ch;margin:14px 0 24px}
+.narr p{margin:0 0 .7em}
+.puz{padding:28px 28px 24px}
+.answer-bar{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px;padding-top:20px;border-top:1px solid rgba(201,164,92,.22)}
+.answer-bar .field{flex:1 1 240px;font-size:1.15rem}
+.feedback{min-height:1.6em;margin-top:10px;font-style:italic;color:#F0A39A}
+.feedback.ok{color:var(--ok)}
+.toolrow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px}
+.hintbox{display:grid;gap:10px;margin-top:14px}
+.hint{padding:12px 16px;border-left:3px solid var(--gilt);background:rgba(201,164,92,.08)}
+.hint b{display:block;font-family:var(--display);font-weight:700;font-size:1.08rem;color:var(--gilt-hi)}
+.tokens{display:inline-flex;gap:4px;margin-left:6px}
+.tokens i{width:9px;height:9px;transform:rotate(45deg);border:1px solid currentColor;display:inline-block}
+.tokens i.on{background:currentColor}
+.doc{padding:20px 22px}
+.doc h4{margin:0 0 .5em;font-family:var(--display);font-weight:700;font-size:1.3rem}
+.inscr{font-family:var(--display);font-style:italic;font-size:1.22rem;line-height:1.55}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+
+/* Localizar */
+.locate{display:grid;gap:18px}
+.step{display:grid;grid-template-columns:40px 1fr;gap:14px;align-items:start}
+.step .n{width:38px;height:38px;border:1px solid var(--gilt);border-radius:50%;display:grid;place-items:center}
+.step .n b{font-family:var(--display);font-size:1.35rem;line-height:1;color:var(--gilt-hi)}
+.step.done .n{background:var(--gilt)}
+.step.done .n b{color:#22170B}
+.step h3{margin:0 0 6px;font-family:var(--display);font-weight:700;font-size:1.3rem}
+.coordrow{display:grid;grid-template-columns:1fr 1fr auto;gap:10px}
+.sigbig{display:inline-block;font-family:var(--mono);font-size:1.25rem;color:var(--cern);background:#071214;border:1px solid var(--cern-lo);padding:4px 12px;text-shadow:0 0 10px rgba(100,225,238,.4)}
+
+/* P1 probetas */
+.beakers{display:flex;justify-content:center;align-items:flex-end;gap:42px;margin:10px 0 22px;flex-wrap:wrap}
+.beaker{text-align:center}
+.beaker .glass{position:relative;width:86px;border:2px solid rgba(236,227,210,.55);border-top:none;border-radius:0 0 14px 14px;background:rgba(236,227,210,.04);overflow:hidden;margin:0 auto}
+.beaker .liq{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(100,225,238,.55),rgba(29,92,102,.85));transition:height .6s cubic-bezier(.3,.8,.3,1)}
+.beaker .liq::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:rgba(200,250,255,.8)}
+.beaker .tick{position:absolute;left:0;width:12px;height:1px;background:rgba(236,227,210,.4)}
+.beaker .nm{font-family:var(--display);font-weight:700;font-size:1.6rem;color:var(--gilt-hi);line-height:1}
+.beaker .amt{font-family:var(--mono);color:var(--cern);font-size:1.05rem}
+.beaker .cap{color:var(--smoke);font-size:.9rem}
+.pours{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;max-width:520px;margin:0 auto}
+.pours button{min-height:44px;border:1px solid var(--gilt-lo);background:rgba(10,8,7,.6);font-family:var(--display);font-weight:700;font-size:1.1rem}
+.pours button:hover:not([disabled]){border-color:var(--gilt);background:rgba(201,164,92,.12)}
+.pours button[disabled]{opacity:.35;cursor:not-allowed}
+.moves{text-align:center;font-family:var(--mono);font-size:.9rem;color:var(--smoke);margin-top:12px}
+
+/* P2 velas */
+.altar-row{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:10px;padding:22px 14px 16px;background:linear-gradient(180deg,rgba(0,0,0,.2),rgba(0,0,0,.45));border:1px solid rgba(201,164,92,.25)}
+.candle{display:flex;flex-direction:column;align-items:center;gap:6px}
+.candle .flame{width:16px;height:26px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:radial-gradient(ellipse at 50% 75%,#FFF6D0,#F2B24A 55%,rgba(242,120,40,.2) 80%);box-shadow:0 0 18px 6px rgba(242,178,74,.35);animation:flick 2.4s ease-in-out infinite;transform-origin:50% 100%}
+.candle.off .flame{opacity:.15;box-shadow:none;animation:none}
+@keyframes flick{25%{transform:scaleY(1.08) rotate(-2deg)}50%{transform:scaleY(.94)}75%{transform:scaleY(1.05) rotate(2deg)}}
+.candle .body{width:26px;height:74px;border-radius:3px 3px 0 0;background:#E9DFC9;box-shadow:inset -5px 0 6px rgba(0,0,0,.15);position:relative;overflow:hidden}
+.candle .body.stripe::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-35deg,transparent 0 7px,var(--c) 7px 12px)}
+.candle .base{width:40px;height:8px;background:var(--gilt-lo);border-top:1px solid var(--gilt)}
+.candle select{width:100%;min-height:40px;background:#0E0B0A;border:1px solid var(--gilt-lo);font-size:.9rem;padding:2px}
+.candle .no{font-family:var(--display);font-weight:700;color:var(--gilt-hi)}
+.legend-colors{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.88rem;color:var(--smoke);margin-top:10px}
+
+/* P3 criptograma */
+.crypt{display:flex;flex-wrap:wrap;gap:6px 22px;justify-content:center;padding:18px;background:rgba(0,0,0,.25);border:1px solid rgba(201,164,92,.2);margin-bottom:18px}
+.cw{display:flex;gap:4px}
+.cc{display:flex;flex-direction:column;align-items:center;width:34px}
+.cc .l{width:32px;height:38px;border-bottom:2px solid var(--gilt);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:1.5rem;color:var(--wax)}
+.cc .k{font-family:var(--mono);font-size:.78rem;color:var(--smoke);margin-top:2px}
+.cc.hl .l{background:rgba(201,164,92,.15)}
+.decoder{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:8px}
+.decoder label{display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid rgba(201,164,92,.25);background:rgba(10,8,7,.5);font-family:var(--mono);color:var(--smoke)}
+.decoder input{width:38px;height:38px;text-align:center;text-transform:uppercase;font-family:var(--display);font-weight:700;font-size:1.3rem;background:#0E0B0A;border:1px solid var(--gilt-lo);color:var(--wax)}
+
+/* P4 lógica */
+.clues{margin:0 0 18px;padding:0;list-style:none;counter-reset:c}
+.clues li{counter-increment:c;padding:7px 0 7px 40px;position:relative;border-bottom:1px dotted rgba(201,164,92,.25)}
+.clues li::before{content:counter(c,upper-roman);position:absolute;left:0;top:7px;width:30px;font-family:var(--display);font-weight:700;color:var(--gilt-hi);text-align:right}
+.lgrid{width:100%;border-collapse:collapse;margin:6px 0 18px;font-size:.95rem}
+.lgrid th,.lgrid td{border:1px solid rgba(201,164,92,.25);padding:0;text-align:center}
+.lgrid th{font-family:var(--display);font-weight:700;padding:6px;color:var(--gilt-hi);font-size:1rem}
+.lgrid td button{width:100%;min-height:38px;background:transparent;border:none;font-size:1.1rem}
+.lgrid td button.x{color:var(--cardinal-hi)}
+.lgrid td button.o{color:var(--ok)}
+.qrow{display:grid;grid-template-columns:1fr 220px;gap:12px;align-items:center;margin:8px 0}
+.qrow label{font-size:1.02rem}
+
+/* P5 estrellas */
+.sky{width:100%;max-width:560px;display:block;margin:0 auto;border:1px solid rgba(201,164,92,.25);background:radial-gradient(ellipse at 35% 30%,#151030,#06040C 72%);touch-action:manipulation}
+.sky .st{cursor:pointer}
+.chosen{display:flex;justify-content:center;gap:8px;margin:12px 0}
+.chosen span{width:30px;height:30px;border:1px solid var(--gilt-lo);display:grid;place-items:center;font-family:var(--display);font-weight:700;color:var(--gilt-hi)}
+.chosen span.f{background:var(--gilt);color:#22170B}
+
+/* P6 mastermind */
+.mm{display:grid;gap:6px;max-width:520px;margin:0 auto}
+.mmrow{display:grid;grid-template-columns:100px 1fr auto;align-items:center;gap:12px;padding:8px 12px;background:rgba(10,8,7,.55);border:1px solid rgba(201,164,92,.2)}
+.mmrow .lab{font-family:var(--display);font-style:italic;color:var(--smoke)}
+.mmrow .dg{font-family:var(--mono);font-size:1.4rem;letter-spacing:.4em;color:var(--wax)}
+.mmrow .res{font-family:var(--mono);font-size:.95rem;white-space:nowrap}
+.mmrow .res .t{color:var(--ok)}
+.mmrow .res .v{color:#E8B35A}
+.mmrow.fixed{background:rgba(236,227,210,.06)}
+.mmin{display:flex;justify-content:center;gap:8px;margin:16px 0 4px;align-items:center;flex-wrap:wrap}
+.mmin input{width:54px;height:60px;text-align:center;font-family:var(--mono);font-size:1.7rem;background:#0E0B0A;border:1px solid var(--gilt-lo);color:var(--wax)}
+
+/* P7 contenedor */
+.trap{display:flex;flex-direction:column;align-items:center;gap:16px}
+.trap-body{position:relative;padding:22px 26px 18px;border-radius:18px;background:linear-gradient(180deg,#2E3538,#1A1F21 45%,#121617);border:1px solid #4E5B60;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 20px 40px rgba(0,0,0,.6)}
+.trap-body::before,.trap-body::after{content:"";position:absolute;left:50%;width:60%;height:10px;transform:translateX(-50%);background:linear-gradient(90deg,#3C474B,#7A898E,#3C474B);border-radius:3px}
+.trap-body::before{top:-6px}.trap-body::after{bottom:-6px}
+.trap-label{font-family:var(--mono);font-size:.72rem;color:#8FA4A9;text-align:center;margin-bottom:10px;letter-spacing:.08em}
+.screen{display:flex;gap:10px;padding:14px 16px;background:#020708;border:2px solid #0E2B2F;border-radius:6px;transition:transform 1.1s cubic-bezier(.5,0,.2,1)}
+.screen.rot{transform:rotate(180deg)}
+.screen svg{width:52px;height:88px}
+.screen .on{fill:var(--cern);filter:drop-shadow(0 0 4px rgba(100,225,238,.9))}
+.screen .off{fill:#0D2427}
+.screen .burn{fill:#0D2427}
+.pickers{display:flex;gap:10px}
+.picker{display:flex;flex-direction:column;align-items:center;width:52px}
+.picker button{width:52px;height:30px;border:1px solid var(--gilt-lo);background:rgba(10,8,7,.6);color:var(--gilt-hi);font-size:.8rem}
+.picker .val{font-family:var(--mono);font-size:1.3rem;color:var(--wax);height:34px;display:grid;place-items:center}
+.repaired-lbl{font-family:var(--display);font-style:italic;color:var(--smoke);text-align:center}
+
+/* P8 luz */
+.beam-wrap{display:flex;justify-content:center}
+.beam{width:100%;max-width:640px;height:auto;display:block;background:#1B1512;border:1px solid rgba(201,164,92,.3);touch-action:manipulation;user-select:none}
+.beam .mir{cursor:pointer}
+.beam .mir:hover rect.hit{fill:rgba(232,205,142,.12)}
+.beam-msg{text-align:center;font-family:var(--display);font-weight:700;font-size:1.8rem;letter-spacing:.18em;color:var(--wax);min-height:1.6em;margin-top:14px;text-shadow:0 0 18px rgba(246,231,184,.5)}
+.elem-legend{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 18px;margin-top:10px;color:var(--smoke);font-size:.92rem}
+.elem-legend span{display:inline-flex;align-items:center;gap:6px}
+
+/* ═════ Panel del Camino ═════ */
+#aside{position:sticky;top:var(--hdr);height:calc(100vh - var(--hdr));display:flex;flex-direction:column;border-left:1px solid rgba(201,164,92,.3);background:linear-gradient(180deg,#191411,#120E0C)}
+.aside-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 10px}
+.aside-head h2{margin:0;font-family:var(--display);font-style:italic;font-weight:600;font-size:1.55rem;color:var(--gilt-hi)}
+#map{height:42vh;min-height:260px;border-top:1px solid rgba(201,164,92,.3);border-bottom:1px solid rgba(201,164,92,.3);background:#2A221D}
+.leaflet-tile-pane{filter:sepia(.5) saturate(.75) contrast(1.04) brightness(.93)}
+.leaflet-container{font-family:var(--serif)}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--stone);color:var(--stone-ink)}
+.pin{width:30px;height:30px;border-radius:50%;background:var(--marble);border:2px solid var(--gilt);color:var(--gilt-hi);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.6)}
+.pin.free{border-color:var(--cern);color:var(--cern);font-family:var(--mono);font-size:11px}
+.maptools{display:flex;gap:6px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid rgba(201,164,92,.18)}
+.maptools .btn{font-size:.95rem;min-height:34px;padding:.2em .8em}
+.maptools .btn.on{background:var(--gilt);color:#22170B}
+.ruler-out{font-family:var(--mono);font-size:.82rem;color:var(--cern);padding:0 14px;min-height:1.4em}
+.freeform{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;padding:8px 12px}
+.freeform .field{min-height:38px;font-size:.9rem;padding:.3em .5em}
+.agenda{flex:1;overflow-y:auto;padding:6px 14px 20px}
+.agenda h3{font-family:var(--display);font-weight:700;font-size:1.2rem;margin:10px 0 6px;color:var(--stone)}
+.ag{display:grid;grid-template-columns:34px 1fr;gap:10px;padding:8px 0;border-bottom:1px solid rgba(201,164,92,.14)}
+.ag .num{font-family:var(--display);font-weight:700;font-size:1.15rem;color:var(--gilt-hi);text-align:center;line-height:1.3}
+.ag .num svg{width:16px;height:16px;display:block;margin:2px auto 0;color:var(--gilt)}
+.ag .sig{font-family:var(--mono);font-size:.82rem;color:var(--cern)}
+.ag .nm{font-family:var(--display);font-weight:600;font-size:1.12rem;line-height:1.2}
+.ag.locked{opacity:.4}
+.ag .pending{font-style:italic;color:var(--smoke);font-size:.92rem}
+.msgnote{margin-top:12px;padding:10px 12px;border:1px solid rgba(246,231,184,.35);background:rgba(246,231,184,.06);font-family:var(--display);font-weight:700;letter-spacing:.1em;color:var(--wax)}
+#scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:80;opacity:0;pointer-events:none;transition:opacity .25s}
+#scrim.on{opacity:1;pointer-events:auto}
+.aside-close{display:none}
+
+/* ═════ Ventanas ═════ */
+.overlay{position:fixed;inset:0;z-index:2000;background:rgba(6,4,3,.84);display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;backdrop-filter:blur(3px)}
+.modal{max-width:620px;width:100%;padding:30px 32px;margin:auto}
+.modal h2{margin:0 0 .4em;font-family:var(--display);font-weight:600;font-size:2rem;line-height:1.1;color:var(--gilt-hi)}
+.modal .actions{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:22px}
+.decoded{max-width:560px;width:100%;margin:auto;text-align:center}
+.decoded .lead{font-family:var(--display);font-style:italic;font-size:1.5rem;color:var(--gilt-hi)}
+.decoded h2{font-family:var(--display);font-weight:600;font-size:2.6rem;margin:.1em 0 .3em;color:var(--stone)}
+.decoded .scr{display:inline-grid;gap:4px;padding:18px 26px;background:#030A0B;border:1px solid var(--cern-lo);font-family:var(--mono);font-size:1.9rem;color:var(--cern);text-shadow:0 0 14px rgba(100,225,238,.6);min-width:260px}
+.decoded .scr small{font-size:.75rem;color:#5C8C92;text-shadow:none}
+.decoded p{color:#DCD1BE}
+.decoded .note{font-style:italic;color:var(--smoke)}
+.tpanel{display:grid;gap:10px}
+.tpanel .row{display:flex;gap:8px;flex-wrap:wrap}
+.tpanel output{display:block;font-family:var(--mono);font-size:.9rem;color:var(--cern);min-height:1.3em}
+
+/* ═════ Final ═════ */
+#victory{padding:46px 18px 80px}
+.plaque{max-width:960px;margin:0 auto;padding:44px 48px 40px;text-align:center}
+.plaque .eyebrowless{font-family:var(--display);font-style:italic;font-size:1.3rem;color:var(--stone-soft)}
+.plaque h1{font-family:var(--display);font-weight:600;font-size:clamp(2.4rem,6vw,4.2rem);line-height:1;margin:.1em 0 .25em;letter-spacing:.02em}
+.plaque .lead{font-size:1.15rem;max-width:60ch;margin:0 auto 26px}
+.v-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:28px;text-align:left;margin-top:10px}
+.v-route{list-style:none;margin:0;padding:0;counter-reset:r}
+.v-route li{display:grid;grid-template-columns:38px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid rgba(43,33,26,.18)}
+.v-route .rn{font-family:var(--display);font-weight:700;font-size:1.15rem;color:var(--cardinal)}
+.v-route .rc{font-family:var(--display);font-weight:700;font-size:1.15rem;line-height:1.15}
+.v-route .rs{font-family:var(--mono);font-size:.78rem;color:var(--stone-soft)}
+.v-route li.end .rn,.v-route li.end .rc{color:var(--cardinal)}
+.v-stats{border:1px solid rgba(43,33,26,.4);padding:16px 18px;align-self:start}
+.v-stats h3{margin:0 0 8px;font-family:var(--display);font-weight:700;font-size:1.35rem;text-align:center}
+.v-stats dl{display:grid;grid-template-columns:1fr auto;gap:5px 12px;margin:0}
+.v-stats dt{font-style:italic}
+.v-stats dd{margin:0;font-family:var(--mono);text-align:right}
+.v-stats .off{border-top:1px solid rgba(43,33,26,.4);padding-top:6px;font-size:1.15rem;font-weight:700}
+.v-stats .code{text-align:center;margin-top:12px;border-top:1px dashed rgba(43,33,26,.5);padding-top:10px;font-family:var(--mono)}
+.v-story{margin-top:22px;text-align:left}
+.v-story p{margin:0 0 .8em}
+.v-story p:last-child{font-family:var(--display);font-style:italic;font-size:1.35rem;text-align:center;margin-top:1em}
+.end-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:28px}
+#gameover{min-height:calc(100vh - var(--hdr));display:flex;align-items:center;justify-content:center;padding:40px 18px}
+
+/* Responsive */
+@media (max-width:1150px){
+  #game{grid-template-columns:1fr}
+  #aside{position:fixed;top:0;right:0;bottom:0;width:min(460px,100vw);height:100vh;z-index:90;transform:translateX(102%);transition:transform .3s cubic-bezier(.2,.8,.2,1);box-shadow:-20px 0 50px rgba(0,0,0,.5)}
+  #aside.on{transform:none}
+  #mapToggle{display:grid}
+  .aside-close{display:grid}
+}
+@media (max-width:900px){
+  #intro{grid-template-columns:1fr;gap:30px;padding:36px 18px}
+  #hdr{grid-template-columns:auto 1fr;height:auto;padding:8px 12px;gap:6px 10px}
+  .altars{grid-column:1/-1;grid-row:2;justify-content:flex-start}
+  .brand small{display:none}
+  .v-grid{grid-template-columns:1fr}
+  .plaque{padding:28px 20px}
+  .altar-row{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media (max-width:620px){
+  body{font-size:16.5px}
+  #stage{padding:22px 14px 100px}
+  .puz{padding:18px 14px}
+  .brand b{display:none}
+  .screen svg{width:38px;height:64px}
+  .picker,.picker button{width:38px}
+  .pickers,.screen{gap:6px}
+  .qrow{grid-template-columns:1fr}
+  .coordrow{grid-template-columns:1fr 1fr}
+  .coordrow .btn{grid-column:1/-1}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}#embers{display:none}}
+@media print{#hdr,#aside,#embers,.end-actions,#overlayRoot{display:none !important}body::before{display:none}body{background:#fff}}
+
+/* Fin del Camino en el mapa */
+.camino-end{position:relative;width:64px;height:64px;display:grid;place-items:center;pointer-events:none}
+.camino-end b{position:relative;z-index:2;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#F3D58A;color:#3a2405;font-size:15px;box-shadow:0 0 18px 6px rgba(243,213,138,.75)}
+.camino-end i{position:absolute;inset:0;border-radius:50%;border:2px solid #F3D58A;animation:caminoPulse 2s ease-out infinite}
+.camino-end i+i{animation-delay:1s}
+@keyframes caminoPulse{0%{transform:scale(.3);opacity:1}100%{transform:scale(1.6);opacity:0}}
+@media (prefers-reduced-motion:reduce){.camino-end i{animation:none;opacity:.5}}
+
+/* Nombres de iglesias en el mapa */
+.poi-wrap{background:none;border:0}
+.poi{position:absolute;left:0;top:0;pointer-events:none}
+.poi i{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#7A1E1E;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
+.poi span{position:absolute;left:18px;top:-9px;white-space:nowrap;font-weight:600;font-size:12.5px;line-height:18px;font-family:var(--serif);color:#4A1410;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff;display:none}
+.poi.l span{left:auto;right:18px}
+#map.poi-names .poi span{display:block}
+#map.poi-hide .poi{display:none}
+
+/* ───────── Victoria ───────── */
+.vic{max-width:1120px;margin:0 auto;padding:56px 24px 48px;position:relative}
+.vic::before{content:"";position:absolute;left:50%;top:-80px;width:900px;height:620px;transform:translateX(-50%);background:radial-gradient(closest-side,rgba(243,213,138,.20),rgba(243,213,138,.05) 55%,transparent);pointer-events:none;animation:dawn 4s ease-out both}
+@keyframes dawn{from{opacity:0;transform:translate(-50%,40px)}}
+.vic-head{text-align:center;position:relative}
+.vic-k{font-family:var(--mono);font-size:.8rem;letter-spacing:.32em;text-transform:uppercase;color:var(--cern)}
+.vic-head h1{font-family:var(--display);font-weight:600;font-size:clamp(2.8rem,8vw,5.6rem);line-height:.92;margin:.25em 0 .3em;letter-spacing:.01em;background:linear-gradient(180deg,#FBEBC0 10%,#C9A45C 60%,#8A6A2E);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 24px rgba(201,164,92,.25))}
+.vic-head h1 em{font-style:italic;font-weight:500}
+.vic-head p{max-width:56ch;margin:0 auto;font-size:1.15rem;color:var(--stone-2)}
+.vic-head p b{color:var(--gilt-hi);font-weight:700}
+.vic-main{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:28px;margin-top:40px;align-items:start}
+.vic-map{margin:0;border:1px solid var(--gilt-lo);padding:8px;background:linear-gradient(#211a16,#16110e);box-shadow:0 30px 60px rgba(0,0,0,.45)}
+.vmap{display:block;width:100%;height:auto}
+.vmap .vgrid path{stroke:rgba(201,164,92,.08);stroke-width:1}
+.vmap .vtiber{fill:none;stroke:#24414B;stroke-width:14;stroke-linecap:round;stroke-linejoin:round;opacity:.6}
+.vmap .vlbl{font-family:var(--mono);font-size:10px;letter-spacing:.3em;fill:rgba(201,164,92,.45)}
+.vmap .vlbl.t{fill:rgba(100,225,238,.4)}
+.vmap .vroute{fill:none;stroke:#C8423A;stroke-width:3;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:vdraw 2.8s .3s ease-in-out forwards}
+.vmap .vext{fill:none;stroke:#E8CD8E;stroke-width:2;stroke-dasharray:1;stroke-dashoffset:1;animation:vdraw 1s 3.1s ease-out forwards;opacity:.8}
+.vmap .vlat,.vmap .vlng{fill:none;stroke:#64E1EE;stroke-width:1.6;stroke-dasharray:1;stroke-dashoffset:1;animation:vdraw 1.1s 4.2s ease-out forwards}
+.vmap .vlng{animation-delay:4.5s}
+@keyframes vdraw{to{stroke-dashoffset:0}}
+.vmap .vpin{opacity:0;animation:vpop .5s var(--d) ease-out forwards}
+.vmap .vpin circle{fill:#14100E;stroke:#C9A45C;stroke-width:1.6}
+.vmap .vpin text{font-family:var(--display);font-weight:700;font-size:11px;fill:#E8CD8E;text-anchor:middle}
+.vmap .vend{opacity:0;animation:vpop .6s 4s ease-out forwards}
+.vmap .vend circle{fill:none;stroke:#E8CD8E;stroke-width:2}
+.vmap .vend text,.vmap .vpan text{font-family:var(--display);font-style:italic;font-size:17px;fill:#E8CD8E}
+.vmap .vpan{opacity:0;animation:vpop .8s 5.4s ease-out forwards}
+.vmap .vpan path{fill:#F6E7B8}
+.vmap .vpan .halo{animation:halo 2.4s 6s ease-in-out infinite}
+@keyframes vpop{from{opacity:0;transform-box:fill-box;transform-origin:center;scale:.4}to{opacity:1;scale:1}}
+@keyframes halo{50%{opacity:.45}}
+.vic-map figcaption{font-size:.92rem;color:var(--smoke);padding:10px 8px 4px;font-style:italic}
+.vic-side{display:grid;gap:18px;justify-items:center}
+.seal{width:min(250px,70vw);height:auto;filter:drop-shadow(0 18px 40px rgba(0,0,0,.5));animation:sealIn 1s .2s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes sealIn{from{opacity:0;transform:scale(.6) rotate(-25deg)}}
+.seal .s1{fill:#3B1512;stroke:#C9A45C;stroke-width:2}
+.seal .s2{fill:none;stroke:#C9A45C;stroke-width:1}
+.seal .s3{fill:#1A0E0C;stroke:#7D6331;stroke-width:1}
+.seal .sring{font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:.12em;fill:#E8CD8E}
+.seal .sk{font-family:var(--mono);font-size:10px;letter-spacing:.25em;text-transform:uppercase;fill:#A89C8E}
+.seal .st{font-family:var(--mono);font-weight:600;font-size:40px;fill:#F6E7B8}
+.vic-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin:0;width:100%;background:var(--gilt-lo);border:1px solid var(--gilt-lo)}
+.vic-stats div{background:var(--marble-2);padding:12px 8px;text-align:center}
+.vic-stats dt{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--smoke)}
+.vic-stats dd{margin:4px 0 0;font-family:var(--mono);font-size:1.15rem;color:var(--stone)}
+.vic-code{width:100%;text-align:center;padding:14px;border:1px dashed var(--cern-lo);background:rgba(100,225,238,.04);display:grid;gap:2px}
+.vic-code span{font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--smoke)}
+.vic-code b{font-family:var(--mono);font-size:1.7rem;letter-spacing:.08em;color:var(--cern)}
+.vic-code small{color:var(--smoke);font-size:.85rem}
+.vic-route{list-style:none;padding:0;margin:34px 0 0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.vic-route li{display:flex;gap:10px;align-items:baseline;padding:10px 12px;border:1px solid rgba(201,164,92,.22);background:rgba(29,23,20,.6);font-family:var(--display);font-weight:600;font-size:1.02rem;line-height:1.15;color:var(--stone)}
+.vic-route b{color:var(--gilt);font-size:1.05rem;min-width:1.6em}
+.vic-route li.x{border-color:var(--gilt-lo);background:rgba(201,164,92,.08)}
+.vic-route li.x b,.vic-route li.x span{color:var(--gilt-hi)}
+.vic-story{max-width:68ch;margin:36px auto 0;color:var(--stone-2)}
+.vic-story p:first-child::first-letter{float:left;font-family:var(--display);font-weight:700;font-size:3.6em;line-height:.8;padding:6px 8px 0 0;color:var(--gilt)}
+.vic-story blockquote{margin:28px 0 0;padding:22px 0 0;border-top:1px solid var(--gilt-lo);text-align:center;font-family:var(--display);font-style:italic;font-size:clamp(1.4rem,3vw,1.9rem);line-height:1.3;color:var(--gilt-hi)}
+.vic .end-actions{margin-top:34px}
+@media (max-width:900px){.vic-main{grid-template-columns:1fr}.vic-route{grid-template-columns:repeat(2,minmax(0,1fr))}.vic{padding-top:36px}}
+@media (prefers-reduced-motion:reduce){.vmap *,.vic::before,.seal{animation:none !important;opacity:1 !important;stroke-dashoffset:0 !important}}
+@media print{
+  .vic{padding:0;color:#000}.vic::before{display:none}
+  .vic-head h1{background:none;color:#5a3d10;-webkit-text-fill-color:#5a3d10;filter:none}
+  .vic-head p,.vic-story,.vic-route li,.vic-stats dd{color:#222}.vic-head p b{color:#000}
+  .vmap *{animation:none !important;opacity:1 !important;stroke-dashoffset:0 !important}
+  .vic-route li,.vic-stats div{background:#fff}.vic-code b{color:#000}
+}
+
+/* Emblema del baldaquino (prueba final) */
+.bonus-doc{display:grid;grid-template-columns:150px 1fr;gap:22px;align-items:center}
+.emblem{width:150px;height:150px}
+.emblem .sw path,.emblem .sw circle{stroke:#6B6F78;fill:#8E939C}
+.emblem .sw path[stroke-width]{fill:none}
+.emblem .ky path,.emblem .ky circle{stroke:#A67C1E}
+.emblem .ky path{fill:none}
+.emblem text{font-family:var(--display);font-weight:700;font-size:15px;fill:#6B5A45;display:none}
+@media (max-width:620px){.bonus-doc{grid-template-columns:1fr;justify-items:center}}
+
+</style>
+</head>
+<body>
+<noscript><p style="padding:2rem;color:#ECE3D2">Este escape room necesita JavaScript activado.</p></noscript>
+<canvas id="embers" aria-hidden="true"></canvas>
+<audio id="bgm" src="musica.mp3" loop preload="none"></audio>
+
+<!-- ═════ PORTADA ═════ -->
+<section id="intro">
+  <div class="title-block">
+    <svg class="mark" viewBox="0 0 80 80" aria-hidden="true">
+      <path d="M40 4 76 40 40 76 4 40Z" fill="none" stroke="#C9A45C" stroke-width="1.5"/>
+      <path d="M40 14 50 30H30Z" fill="none" stroke="#E8CD8E" stroke-width="1.4"/>
+      <path d="M40 66 30 50H50Z" fill="none" stroke="#E8CD8E" stroke-width="1.4"/>
+      <path d="M14 40 30 30V50Z" fill="none" stroke="#E8CD8E" stroke-width="1.4"/>
+      <path d="M66 40 50 50V30Z" fill="none" stroke="#E8CD8E" stroke-width="1.4"/>
+      <circle cx="40" cy="40" r="5" fill="#C8423A"/>
+    </svg>
+    <h1>Ángeles y Demonios<span>Escape room · Roma</span></h1>
+    <div class="story">
+      <p>Ginebra, 22:14. El CERN confirma lo impensable: un contenedor con antimateria ha desaparecido del laboratorio. Cuando su batería se agote, el campo magnético que la mantiene suspendida se apagará y bastará un roce con la materia para arrasar media ciudad.</p>
+      <p>En el suelo del laboratorio alguien ha dejado una marca: un rombo con los cuatro elementos. La vieja hermandad de los Illuminati ha vuelto.</p>
+      <p>Una hora después, el contenedor emite una señal desde Roma. Para llegar hasta él hay que seguir el Camino de la Iluminación: ocho altares escondidos en ocho iglesias. Cada altar guarda una prueba, y cada prueba, la señal del siguiente.</p>
+    </div>
+  </div>
+
+  <div class="signal slab">
+    <h2>Señal interceptada</h2>
+    <p class="sub">Primer altar del Camino</p>
+    <div class="coords"><span>Latitud</span><b id="sig0lat">—</b><span>Longitud</span><b id="sig0lng">—</b></div>
+    <form id="startForm" autocomplete="off">
+      <label for="teamName">Nombre del equipo</label>
+      <input id="teamName" class="field" maxlength="32" placeholder="Por ejemplo: Guardia Suiza" required>
+      <button class="btn" type="submit">Empezar la cuenta atrás</button>
+    </form>
+    <ul class="rules">
+      <li>Tenéis 60 minutos antes de que la batería se agote.</li>
+      <li>Cada señal es una coordenada. Marcadla en el mapa y averiguad qué iglesia hay allí para llegar al altar.</li>
+      <li>Podéis pedir 3 pistas gratis. Después, cada pista resta 2 minutos.</li>
+      <li>Gana el equipo que desactive el contenedor en menos tiempo.</li>
+    </ul>
+  </div>
+  <div class="credit" id="credit">Escape room creado por Juan Luis Torralbo Muñoz · 4.º ESO</div>
+</section>
+
+<!-- ═════ CABECERA ═════ -->
+<header id="hdr" class="hidden">
+  <div class="brand" id="brand">
+    <svg viewBox="0 0 80 80" aria-hidden="true"><path d="M40 4 76 40 40 76 4 40Z" fill="none" stroke="#C9A45C" stroke-width="2.5"/><path d="M40 14 50 30H30ZM40 66 30 50H50ZM14 40 30 30V50ZM66 40 50 50V30Z" fill="none" stroke="#E8CD8E" stroke-width="2"/><circle cx="40" cy="40" r="6" fill="#C8423A"/></svg>
+    <div><b>Ángeles y Demonios</b><small id="teamLabel"></small></div>
+  </div>
+  <div class="altars" id="altars" aria-label="Progreso por los altares"></div>
+  <div class="hdr-right">
+    <div class="canister" id="canister" title="Batería del contenedor de antimateria">
+      <div class="vial"><i></i></div>
+      <div class="seg7" id="timer" aria-live="off"></div>
+    </div>
+    <button class="iconbtn" id="soundBtn" aria-label="Activar la música"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/><path class="mute" d="M3 3l18 18"/></svg></button>
+    <button class="iconbtn" id="mapToggle" aria-label="Abrir el mapa y la agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg><span class="badge" id="mapBadge"></span></button>
+  </div>
+</header>
+
+<div id="game" class="hidden">
+  <main id="stage"><div class="stage-inner" id="stageInner"></div></main>
+  <aside id="aside" aria-label="Mapa y agenda del Camino">
+    <div class="aside-head">
+      <h2>El Camino</h2>
+      <button class="iconbtn aside-close" id="asideClose" aria-label="Cerrar el mapa"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div class="maptools">
+      <button class="btn ghost" id="rulerBtn" type="button">Regla</button>
+      <button class="btn ghost" id="freeBtn" type="button">Marcar un punto</button>
+      <button class="btn ghost" id="fitBtn" type="button">Ver todo</button>
+    </div>
+    <form class="freeform hidden" id="freeForm" autocomplete="off">
+      <input class="field mono" id="freeLat" placeholder="Latitud" inputmode="decimal">
+      <input class="field mono" id="freeLng" placeholder="Longitud" inputmode="decimal">
+      <button class="btn small">Marcar</button>
+    </form>
+    <div class="ruler-out" id="rulerOut"></div>
+    <div id="map"></div>
+    <div class="agenda" id="agenda"></div>
+  </aside>
+</div>
+<section id="victory" class="hidden"></section>
+<div id="scrim"></div>
+<div id="overlayRoot"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>window.__D="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";</script>
+<script>
+'use strict';
+/* ════════════════════════════════════════════════════════════════
+   ÁNGELES Y DEMONIOS · Escape room
+   Autor: Juan Luis Torralbo Muñoz
+   Las respuestas, señales y pistas van cifradas en __D.
+   ════════════════════════════════════════════════════════════════ */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+const pad = n => String(n).padStart(2, '0');
+const fmt = ms => { const s = Math.max(0, Math.round(ms / 1000)); return pad(Math.floor(s / 60)) + ':' + pad(s % 60); };
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
+const GAME_MS = 60 * 60 * 1000;
+const KEY = 'ad.partida.v2', SOUND_KEY = 'ad.musica';
+function cyrb53(str, seed = 0) { let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed; for (let i = 0; i < str.length; i++) { const ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); } h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909); h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909); return 4294967296 * (2097151 & h2) + (h1 >>> 0); }
+const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }, del(k) { try { localStorage.removeItem(k); } catch (e) { } } };
+const DATA = (() => { const key = 'Camino-della-Illuminazione-1598'; const bin = atob(window.__D); const out = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i) ^ key.charCodeAt(i % key.length); return JSON.parse(new TextDecoder().decode(out)); })();
+const CH = DATA.churches;
+const accepts = (input, list) => { const v = norm(input); if (!v) return false; return list.some(a => { const n = norm(a); return n === v || (n.length >= 5 && v.includes(n)); }); };
+
+/* ───────── Siete segmentos ───────── */
+const SEGDIG = { '0': 'abcdef', '1': 'bc', '2': 'abdeg', '3': 'abcdg', '4': 'bcfg', '5': 'acdfg', '6': 'acdefg', '7': 'abc', '8': 'abcdefg', '9': 'abcdfg', ' ': '' };
+const hseg = y => `M10 ${y}L14 ${y - 4}L38 ${y - 4}L42 ${y}L38 ${y + 4}L14 ${y + 4}Z`;
+const vseg = (x, y1, y2) => `M${x} ${y1}L${x + 4} ${y1 + 4}L${x + 4} ${y2 - 4}L${x} ${y2}L${x - 4} ${y2 - 4}L${x - 4} ${y1 + 4}Z`;
+const SEGP = { a: hseg(5), g: hseg(44), d: hseg(83), f: vseg(6, 8, 41), b: vseg(46, 8, 41), e: vseg(6, 47, 80), c: vseg(46, 47, 80) };
+function seg7(on, w = 22, h = 37, extra = {}) {
+  return `<svg viewBox="0 0 56 88" width="${w}" height="${h}" aria-hidden="true"><g transform="translate(4 0) skewX(-6)">${'abcdefg'.split('').map(s => `<path d="${SEGP[s]}" class="${on.includes(s) ? 'on' : (extra[s] || 'off')}"/>`).join('')}</g></svg>`;
+}
+
+/* ───────── Sonido ───────── */
+const Sound = {
+  ctx: null, on: store.get(SOUND_KEY) !== false,
+  init() { if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; } try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { } },
+  tone(f, t0, d, type = 'sine', v = .12) { if (!this.ctx || !this.on) return; const o = this.ctx.createOscillator(), g = this.ctx.createGain(); o.type = type; o.frequency.setValueAtTime(f, t0); g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(v, t0 + .01); g.gain.exponentialRampToValueAtTime(.0008, t0 + d); o.connect(g); g.connect(this.ctx.destination); o.start(t0); o.stop(t0 + d + .05); return o; },
+  sfx(n) {
+    this.init(); if (!this.ctx || !this.on) return; const t = this.ctx.currentTime;
+    if (n === 'ok') [392, 493.88, 587.33, 783.99].forEach((f, i) => this.tone(f, t + i * .1, .9, 'triangle', .1));
+    if (n === 'bad') { this.tone(155.56, t, .3, 'square', .04); this.tone(116.54, t + .2, .4, 'square', .04); }
+    if (n === 'click') this.tone(1200, t, .05, 'square', .02);
+    if (n === 'pen') { const o = this.tone(440, t, .8, 'sawtooth', .05); if (o) o.frequency.exponentialRampToValueAtTime(110, t + .7); }
+    if (n === 'bell') [261.63, 523.25, 784, 1046.5].forEach((f, i) => this.tone(f, t, 2.2 - i * .4, 'sine', .09 / (i + 1)));
+    if (n === 'win') [392, 523.25, 659.25, 783.99, 1046.5].forEach((f, i) => this.tone(f, t + i * .16, i === 4 ? 1.8 : .6, 'triangle', .11));
+    if (n === 'lose') [220, 207.65, 196, 185, 174.6].forEach((f, i) => this.tone(f, t + i * .25, .9, 'sawtooth', .05));
+  },
+  music(play) { const a = $('#bgm'); if (!a) return; a.volume = .16; if (play && this.on) a.play().catch(() => { }); else a.pause(); },
+  toggle() { this.on = !this.on; store.set(SOUND_KEY, this.on); this.music(this.on && S && (S.phase !== 'won' && S.phase !== 'lost')); paintSound(); }
+};
+function paintSound() { const b = $('#soundBtn'); b.setAttribute('aria-label', Sound.on ? 'Silenciar' : 'Activar el sonido'); $('.mute', b).style.opacity = Sound.on ? 0 : 1; }
+
+/* Brasas */
+(function embers() {
+  const cv = $('#embers'); if (!cv || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cx = cv.getContext('2d'); let W, H; const P = [];
+  const size = () => { W = cv.width = innerWidth; H = cv.height = innerHeight; }; size(); addEventListener('resize', size);
+  for (let i = 0; i < 38; i++) P.push({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.6 + .4, s: Math.random() * .35 + .12, a: Math.random() * .5 + .2, w: Math.random() * 6 });
+  (function loop() { if (!document.hidden) { cx.clearRect(0, 0, W, H); for (const p of P) { p.y -= p.s; p.w += .02; p.x += Math.sin(p.w) * .25; if (p.y < -5) { p.y = H + 5; p.x = Math.random() * W; } cx.fillStyle = `rgba(232,${150 + Math.round(p.r * 30)},90,${p.a * (0.6 + 0.4 * Math.sin(p.w * 3))})`; cx.beginPath(); cx.arc(p.x, p.y, p.r, 0, 7); cx.fill(); } } requestAnimationFrame(loop); })();
+})();
+
+/* ───────── Estado ───────── */
+let S = null;
+const save = () => { if (S) store.set(KEY, S); };
+function newState(team) {
+  const now = Date.now();
+  return {
+    v: 2, team, startedAt: now, deadline: now + GAME_MS, penalties: 0, phase: 'locate', cur: 0,
+    mapped: Array(8).fill(false), located: Array(8).fill(false), solved: [], hints: {}, tokensUsed: 0, wrong: {}, lockUntil: {}, free: [], finishedAt: null,
+    p1: { st: [8, 0, 0], moves: 0 }, p2: Array(8).fill(''), p2ok: false, p3: {}, p4: {}, p5: [], p6: [], p7: [0, 0, 0, 0, 0, 0], p8: Array(14).fill('/')
+  };
+}
+const remaining = () => S ? S.deadline - Date.now() : GAME_MS;
+
+/* ───────── Ventanas ───────── */
+function overlay(html, closable = true) {
+  const d = document.createElement('div'); d.className = 'overlay'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.innerHTML = html;
+  $('#overlayRoot').appendChild(d); d._prev = document.activeElement;
+  if (closable) { d._esc = true; d.addEventListener('click', e => { if (e.target === d || e.target.closest('[data-close]')) closeOverlay(d); }); }
+  const f = d.querySelector('button,input'); if (f) setTimeout(() => f.focus(), 40);
+  return d;
+}
+function closeOverlay(d) { if (!d || !d.parentNode) return; d.remove(); if (d._prev && d._prev.focus) d._prev.focus({ preventScroll: true }); }
+function closeAllOverlays() { $$('#overlayRoot .overlay').forEach(d => d.remove()); }
+function confirmBox(title, text, ok, fn) { const d = overlay(`<div class="modal slab"><h2>${esc(title)}</h2><p>${esc(text)}</p><div class="actions"><button class="btn ghost" data-close>Cancelar</button><button class="btn" id="okBtn">${esc(ok)}</button></div></div>`); $('#okBtn', d).addEventListener('click', () => { closeOverlay(d); fn(); }); setTimeout(() => $('#okBtn', d).focus(), 50); }
+
+/* ───────── Reloj ───────── */
+let tickT = null;
+function paintTimer(r) {
+  const s = fmt(r).replace(':', '');
+  $('#timer').innerHTML = seg7(SEGDIG[s[0]]) + seg7(SEGDIG[s[1]]) + '<span class="colon"><i></i><i></i></span>' + seg7(SEGDIG[s[2]]) + seg7(SEGDIG[s[3]]);
+  const c = $('#canister'); c.classList.toggle('warn', r <= 10 * 60e3 && r > 5 * 60e3); c.classList.toggle('danger', r <= 5 * 60e3 && S.phase !== 'won');
+}
+function tick() {
+  if (!S) return;
+  if (S.phase === 'won') { paintTimer(S.deadline - S.finishedAt); return; }
+  if (S.phase === 'lost') { paintTimer(0); return; }
+  const r = remaining(); paintTimer(r); if (r <= 0) lose();
+}
+function penalize(sec, why) {
+  S.deadline -= sec * 1000; S.penalties += sec; save();
+  const f = document.createElement('div'); f.className = 'penalty-fly'; f.textContent = '−' + fmt(sec * 1000) + (why ? ' ' + why : ''); $('#canister').appendChild(f); setTimeout(() => f.remove(), 1800);
+  Sound.sfx('pen'); tick();
+}
+
+/* ───────── Mapa (Leaflet) ───────── */
+let map = null, layer = null, rulerMode = false, rulerPts = [], rulerLayer = null;
+function initMap() {
+  if (map || !window.L) { if (!window.L) $('#map').innerHTML = '<p class="muted" style="padding:16px">No se ha podido cargar el mapa. Comprobad la conexión a internet o buscad las coordenadas en otro mapa.</p>'; return; }
+  map = L.map('map', { zoomControl: true, attributionControl: true }).setView([41.9, 12.488], 14);
+  /* Varios proveedores de mapa, elegibles con el botón de capas (arriba a la derecha).
+     Algunos servidores bloquean según la red o cómo se abra el archivo; si uno falla, se pasa al siguiente,
+     y si muestra un aviso en lugar del mapa, se puede cambiar a mano. La elección se recuerda. */
+  const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/';
+  const BASES = {
+    'Callejero': L.tileLayer(ESRI + 'World_Street_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: '© Esri' }),
+    'Satélite': L.tileLayer(ESRI + 'World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: '© Esri' }),
+    'OpenStreetMap': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap', referrerPolicy: 'strict-origin-when-cross-origin' }),
+    'Topográfico': L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, attribution: '© OpenTopoMap · © OpenStreetMap' })
+  };
+  const names = Object.keys(BASES);
+  let saved = null; try { saved = localStorage.getItem('ad_basemap'); } catch (e) {}
+  let current = BASES[saved] ? saved : names[0];
+  BASES[current].addTo(map);
+  names.forEach(n => {
+    let errs = 0;
+    BASES[n].on('tileerror', () => {
+      if (n !== current || ++errs <= 5) return;
+      const next = names[(names.indexOf(n) + 1) % names.length];
+      map.removeLayer(BASES[n]); BASES[next].addTo(map);
+    });
+  });
+  /* Capa propia con los nombres de las iglesias: el callejero de Esri no los muestra, y así salen
+     igual con cualquier mapa de fondo. Incluye muchas iglesias para que no delate cuáles son los altares. */
+  const LEFT = ["Santa Maria dei Miracoli", "San Giacomo in Augusta", "Santa Susanna", "Santa Maria in Via Lata", "Santa Maria di Loreto"];
+  const churchLayer = L.layerGroup();
+  DATA.poi.forEach(([n, la, lo]) => {
+    const html = `<div class="poi ${LEFT.includes(n) ? 'l' : ''}"><i></i><span>${esc(n)}</span></div>`;
+    L.marker([la, lo], { icon: L.divIcon({ className: 'poi-wrap', html, iconSize: [0, 0], iconAnchor: [0, 0] }), interactive: false, keyboard: false }).addTo(churchLayer);
+  });
+  churchLayer.addTo(map);
+  const zoomCls = () => { const z = map.getZoom(); map.getContainer().classList.toggle('poi-names', z >= 16); map.getContainer().classList.toggle('poi-hide', z < 14); };
+  map.on('zoomend', zoomCls); zoomCls();
+  L.control.layers(BASES, { 'Nombres de iglesias': churchLayer }, { position: 'topright' }).addTo(map);
+  map.on('baselayerchange', e => { current = e.name; try { localStorage.setItem('ad_basemap', e.name); } catch (er) {} });
+  map.on('layeradd', e => { names.forEach(n => { if (BASES[n] === e.layer) current = n; }); });
+  layer = L.layerGroup().addTo(map); rulerLayer = L.layerGroup().addTo(map);
+  map.on('click', e => {
+    if (!rulerMode) return;
+    /* La regla se engancha al altar más cercano (a menos de 24 px en pantalla) para que la recta pase exactamente por él. */
+    let ll = e.latlng, snap = -1, best = 24;
+    CH.forEach((c, i) => { if (!S.mapped[i]) return; const d = map.latLngToContainerPoint([+c.lat, +c.lng]).distanceTo(e.containerPoint); if (d < best) { best = d; snap = i; } });
+    if (snap >= 0) ll = L.latLng(+CH[snap].lat, +CH[snap].lng);
+    ll.altar = snap;
+    rulerPts.push(ll); if (rulerPts.length > 2) rulerPts = [ll]; drawRuler();
+  });
+  map.on('mousemove', e => { if (rulerMode && rulerPts.length === 1) drawRuler(e.latlng); });
+  drawMap(true);
+}
+const pinIcon = (txt, free) => L.divIcon({ className: '', html: `<div class="pin ${free ? 'free' : ''}">${txt}</div>`, iconSize: [30, 30], iconAnchor: [15, 15] });
+function drawMap(fit) {
+  if (!map) return; layer.clearLayers();
+  const pts = [];
+  CH.forEach((c, i) => {
+    if (!S.mapped[i]) return; const ll = [+c.lat, +c.lng]; pts.push(ll);
+    L.marker(ll, { icon: pinIcon(ROMAN[i]) }).bindPopup(`<b>Altar ${ROMAN[i]}</b><br>${S.located[i] ? esc(c.name) : 'Iglesia sin identificar'}<br><span style="font-family:monospace">${c.lat}, ${c.lng}</span><br><a href="https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lng}" target="_blank" rel="noopener">Ver en Google Maps ↗</a>`).addTo(layer);
+  });
+  if (pts.length > 1) L.polyline(pts, { color: '#9B1C1C', weight: 3, opacity: .8, dashArray: '8 8' }).addTo(layer);
+  S.free.forEach((p, i) => L.marker([p[0], p[1]], { icon: pinIcon('✛', true) }).bindPopup(`Punto marcado<br><span style="font-family:monospace">${p[0]}, ${p[1]}</span><br><a href="https://www.google.com/maps/search/?api=1&query=${p[0]},${p[1]}" target="_blank" rel="noopener">Ver en Google Maps ↗</a>`).addTo(layer));
+  if (fit) fitAll();
+}
+function fitAll() {
+  if (!map) return; const all = CH.filter((c, i) => S.mapped[i]).map(c => [+c.lat, +c.lng]).concat(S.free.map(p => [p[0], p[1]]));
+  if (all.length === 1) map.setView(all[0], 16); else if (all.length > 1) map.fitBounds(all, { padding: [30, 30] });
+}
+function geo(a, b) {
+  const R = 6371000, toR = x => x * Math.PI / 180, dLat = toR(b.lat - a.lat), dLng = toR(b.lng - a.lng);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(toR(a.lat)) * Math.cos(toR(b.lat)) * Math.sin(dLng / 2) ** 2;
+  const dist = 2 * R * Math.asin(Math.sqrt(h));
+  const y = Math.sin(dLng) * Math.cos(toR(b.lat)), x = Math.cos(toR(a.lat)) * Math.sin(toR(b.lat)) - Math.sin(toR(a.lat)) * Math.cos(toR(b.lat)) * Math.cos(dLng);
+  return { dist, brg: (Math.atan2(y, x) * 180 / Math.PI + 360) % 360 };
+}
+function drawRuler(hover) {
+  rulerLayer.clearLayers();
+  const A = rulerPts[0], B = rulerPts[1] || hover; if (!A) { $('#rulerOut').textContent = rulerMode ? 'Haced clic en dos puntos del mapa para trazar una recta.' : ''; return; }
+  L.circleMarker(A, { radius: 5, color: '#64E1EE', fillOpacity: 1 }).addTo(rulerLayer);
+  if (!B) return;
+  const dl = B.lat - A.lat, dg = B.lng - A.lng, k = 40;
+  L.polyline([[A.lat - dl * k, A.lng - dg * k], [B.lat + dl * k, B.lng + dg * k]], { color: '#64E1EE', weight: 2, dashArray: '6 6', opacity: .9 }).addTo(rulerLayer);
+  L.circleMarker(B, { radius: 5, color: '#64E1EE', fillOpacity: 1 }).addTo(rulerLayer);
+  const g = geo(A, B); $('#rulerOut').textContent = `Distancia ${Math.round(g.dist)} m · rumbo ${Math.round(g.brg)}°${rulerPts[1] ? ' · clic de nuevo para empezar otra' : ''}`;
+  if (rulerPts[1]) checkCamino(A, B, g);
+}
+/* Fin del Camino: si la recta une dos altares distintos y sigue la dirección noroeste-sureste del Camino,
+   el punto al que apunta (San Giovanni in Laterano) se ilumina en el mapa. */
+const CAMINO_END = [41.885906, 12.506156];
+function checkCamino(A, B, g) {
+  if (!['final', 'bonus', 'won'].includes(S.phase)) return;
+  if (A.altar == null || B.altar == null || A.altar < 0 || B.altar < 0 || A.altar === B.altar) return;
+  const brg = g.brg % 180; if (brg < 115 || brg > 165) return;
+  const k = Math.cos(41.9 * Math.PI / 180) * 111320, M = 111320;
+  const ax = A.lng * k, ay = A.lat * M, dx = B.lng * k - ax, dy = B.lat * M - ay, cx = CAMINO_END[1] * k - ax, cy = CAMINO_END[0] * M - ay;
+  if (Math.abs(cx * dy - cy * dx) / Math.hypot(dx, dy) > 480) return;
+  const glow = L.divIcon({ className: '', html: '<div class="camino-end"><i></i><i></i><b>✦</b></div>', iconSize: [64, 64], iconAnchor: [32, 32] });
+  L.marker(CAMINO_END, { icon: glow, interactive: false }).addTo(rulerLayer);
+  L.polyline([B, CAMINO_END], { color: '#F3D58A', weight: 3, opacity: .85 }).addTo(rulerLayer);
+  if (!S.caminoSeen) { S.caminoSeen = true; save(); Sound.sfx('bell'); }
+  $('#rulerOut').textContent = 'La recta del Camino apunta a un lugar concreto: el punto que brilla en el mapa.';
+  map.flyTo(CAMINO_END, Math.max(map.getZoom(), 15), { duration: 1.4 });
+}
+function openAside() { $('#aside').classList.add('on'); $('#scrim').classList.add('on'); setTimeout(() => map && map.invalidateSize(), 320); }
+function closeAside() { $('#aside').classList.remove('on'); $('#scrim').classList.remove('on'); }
+
+/* Agenda */
+const KEY_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-label="Llave"><circle cx="7" cy="12" r="4"/><path d="M11 12h10M17 12v4M20 12v3"/></svg>';
+const SWORD_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-label="Espada"><path d="M4 20 18 6l2-2v4l-2 0L4 20Z"/><path d="M7 13l4 4M5 19l-2 2"/></svg>';
+function renderAgenda() {
+  const reached = S.phase === 'won' ? 8 : S.cur + 1;
+  let h = '<h3>Agenda de campo</h3>';
+  CH.forEach((c, i) => {
+    const vis = i < reached || S.solved.length >= 8;
+    const mark = i === 0 ? KEY_SVG : i === 3 ? SWORD_SVG : '';
+    h += `<div class="ag ${vis ? '' : 'locked'}"><div class="num">${ROMAN[i]}${vis ? mark : ''}</div><div>${vis
+      ? `<div class="sig">${c.lat} · ${c.lng}</div>${S.located[i] ? `<div class="nm">${esc(c.name)}</div>` : '<div class="pending">Iglesia sin identificar</div>'}`
+      : '<div class="pending">Señal sin descifrar</div>'}</div></div>`;
+  });
+  if (S.solved.includes('p8')) h += `<div class="msgnote">Mensaje del octavo altar: ${esc(DATA.p8message)}</div>`;
+  $('#agenda').innerHTML = h;
+}
+
+/* ───────── Cabecera ───────── */
+function renderAltars() {
+  $('#altars').innerHTML = ROMAN.map((r, i) => `<span class="${S.solved.includes('p' + (i + 1)) ? 'done' : (i === S.cur && (S.phase === 'locate' || S.phase === 'puzzle')) ? 'now' : ''}" title="Altar ${r}">${r}</span>`).join('');
+}
+
+/* ───────── Pistas y bloqueo ───────── */
+function hintKey() { return S.phase === 'locate' ? 'loc' + S.cur : S.phase === 'puzzle' ? 'p' + (S.cur + 1) : S.phase; }
+function hintList() { const k = hintKey(); return k.startsWith('loc') ? DATA.hints.loc : DATA.hints[k] || []; }
+function hintBlock() {
+  return `<div class="toolrow"><button class="btn ghost small" id="hintBtn" type="button"></button><span class="muted">El mapa y la agenda están ${innerWidth > 1150 ? 'a la derecha' : 'en el botón del mapa, arriba'}.</span></div><div class="hintbox" id="hints"></div>`;
+}
+function paintHints() {
+  const list = hintList(), n = S.hints[hintKey()] || 0, b = $('#hintBtn'); if (!b) return;
+  $('#hints').innerHTML = list.slice(0, n).map(h => `<div class="hint"><b>${esc(h.who)} os dice:</b>${esc(h.text)}</div>`).join('');
+  const free = 3 - S.tokensUsed;
+  if (n >= list.length) { b.disabled = true; b.textContent = 'No hay más pistas aquí'; return; }
+  b.disabled = false;
+  b.innerHTML = free > 0 ? `Pedir una pista <span class="tokens">${[0, 1, 2].map(i => `<i class="${i < free ? 'on' : ''}"></i>`).join('')}</span>` : 'Pedir una pista (−2:00)';
+  b.onclick = () => {
+    const go = () => { if (S.tokensUsed < 3) S.tokensUsed++; else penalize(120, 'pista'); S.hints[hintKey()] = n + 1; save(); paintHints(); Sound.sfx('click'); };
+    if (S.tokensUsed < 3) go(); else confirmBox('¿Pedir otra pista?', 'Ya habéis gastado las tres pistas gratis. Esta os costará 2 minutos.', 'Pedir pista (−2:00)', go);
+  };
+}
+let lockT = null;
+function paintLock() {
+  clearInterval(lockT); const k = hintKey();
+  const upd = () => { const left = Math.ceil(((S.lockUntil[k] || 0) - Date.now()) / 1000); $$('.check').forEach(b => { b.disabled = left > 0; b.textContent = left > 0 ? `Esperad ${left} s` : b.dataset.label; }); if (left <= 0) clearInterval(lockT); };
+  upd(); lockT = setInterval(upd, 250);
+}
+const locked = () => (S.lockUntil[hintKey()] || 0) > Date.now();
+function fail(msg, input) {
+  const k = hintKey(); S.wrong[k] = (S.wrong[k] || 0) + 1; const n = S.wrong[k];
+  if (n >= 2) S.lockUntil[k] = Date.now() + Math.min(5 * (n - 1), 20) * 1000;
+  save(); Sound.sfx('bad'); const fb = $('#fb'); if (fb) { fb.className = 'feedback'; fb.textContent = msg; }
+  if (input) { input.classList.remove('shake'); void input.offsetWidth; input.classList.add('shake'); }
+  paintLock();
+}
+const say = (msg, ok) => { const fb = $('#fb'); if (fb) { fb.className = 'feedback' + (ok ? ' ok' : ''); fb.textContent = msg; } };
+
+/* ───────── Pantallas ───────── */
+function show(w) {
+  $('#intro').classList.toggle('hidden', w !== 'intro'); $('#hdr').classList.toggle('hidden', w === 'intro' || w === 'victory');
+  $('#game').classList.toggle('hidden', w !== 'game'); $('#victory').classList.toggle('hidden', w !== 'victory'); scrollTo({ top: 0, behavior: 'instant' });
+}
+function renderAll() {
+  $('#teamLabel').textContent = 'Equipo ' + S.team;
+  if (S.phase === 'won') { renderVictory(); show('victory'); return; }
+  if (S.phase === 'puzzle' && S.solved.includes('p' + (S.cur + 1))) { if (S.cur < 7) { S.cur++; S.phase = 'locate'; } else S.phase = 'final'; save(); }
+  show('game'); initMap(); drawMap(false); renderAltars(); renderAgenda();
+  const st = $('#stageInner');
+  if (S.phase === 'locate') renderLocate(st);
+  else if (S.phase === 'puzzle') renderPuzzle(st);
+  else if (S.phase === 'final') renderFinal(st);
+  else if (S.phase === 'bonus') renderBonus(st);
+  else if (S.phase === 'lost') renderLost(st);
+  if ($('#hintBtn')) { paintHints(); paintLock(); }
+  tick(); setTimeout(() => map && map.invalidateSize(), 100);
+}
+
+/* ═════ Localizar un altar ═════ */
+function renderLocate(st) {
+  const i = S.cur, c = CH[i];
+  st.innerHTML = `
+    <div class="kicker">Señal ${ROMAN[i]} de VIII</div>
+    <h1 class="stage-title">${i === 0 ? 'El primer altar' : 'Rumbo al altar ' + ROMAN[i]}</h1>
+    <div class="narr"><p>${i === 0 ? 'La señal interceptada señala una iglesia de Roma. Encontradla en el mapa: allí empieza el Camino de la Iluminación.' : 'La nueva señal apunta a otra iglesia. Antes de entrar, tenéis que saber dónde estáis.'}</p></div>
+    <div class="puz slab locate">
+      <div class="step ${S.mapped[i] ? 'done' : ''}"><div class="n"><b>1</b></div><div>
+        <h3>Marcad la señal en el mapa</h3>
+        <p style="margin:0 0 10px">Señal recibida: <span class="sigbig">${c.lat} · ${c.lng}</span></p>
+        ${S.mapped[i] ? '<p class="feedback ok" style="margin:0">Señal marcada en el mapa.</p>' : `<form class="coordrow" id="coordForm" autocomplete="off"><input class="field mono" id="cLat" placeholder="Latitud" inputmode="decimal"><input class="field mono" id="cLng" placeholder="Longitud" inputmode="decimal"><button class="btn">Marcar en el mapa</button></form>`}
+      </div></div>
+      <div class="step ${S.located[i] ? 'done' : ''}" ${S.mapped[i] ? '' : 'style="opacity:.45"'}><div class="n"><b>2</b></div><div>
+        <h3>¿Qué iglesia hay en ese punto?</h3>
+        ${S.mapped[i] ? `<form class="answer-bar" style="margin:0;padding:0;border:none" id="nameForm" autocomplete="off"><input class="field" id="cName" placeholder="Nombre de la iglesia"><button class="btn check" data-label="Anotar en la agenda">Anotar en la agenda</button></form>` : '<p class="muted" style="margin:0">Primero marcad la señal.</p>'}
+      </div></div>
+      <div class="feedback" id="fb" role="status"></div>
+      ${hintBlock()}
+    </div>`;
+  const cf = $('#coordForm');
+  if (cf) cf.addEventListener('submit', e => {
+    e.preventDefault();
+    const la = parseFloat($('#cLat').value.replace(',', '.')), lo = parseFloat($('#cLng').value.replace(',', '.'));
+    if (isNaN(la) || isNaN(lo)) { say('Escribid la latitud y la longitud con números.'); return; }
+    if (Math.abs(la - +c.lat) > .0006 || Math.abs(lo - +c.lng) > .0006) { say('Esas coordenadas no coinciden con la señal. Revisad los números.'); $('#cLat').classList.add('shake'); setTimeout(() => $('#cLat') && $('#cLat').classList.remove('shake'), 400); Sound.sfx('bad'); return; }
+    S.mapped[i] = true; save(); Sound.sfx('click'); drawMap(false);
+    if (map) map.flyTo([+c.lat, +c.lng], 17, { duration: 1.2 });
+    if (innerWidth <= 1150) openAside();
+    renderAll();
+  });
+  const nf = $('#nameForm');
+  if (nf) nf.addEventListener('submit', e => {
+    e.preventDefault(); if (locked()) return;
+    if (accepts($('#cName').value, c.accept)) {
+      S.located[i] = true; S.phase = 'puzzle'; save(); Sound.sfx('bell');
+      const d = overlay(`<div class="decoded"><div class="lead">Altar ${ROMAN[i]} localizado</div><h2>${esc(c.name)}</h2><p>Anotado en la agenda. Entráis en la iglesia: el altar os espera.</p><button class="btn" id="goAltar">Entrar en el altar</button></div>`, false);
+      $('#goAltar', d).addEventListener('click', () => { closeOverlay(d); closeAside(); renderAll(); });
+    } else fail('Esa no es la iglesia que hay en la señal. Acercad más el mapa.', $('#cName'));
+  });
+}
+
+/* ═════ Pruebas ═════ */
+const PUZ = [
+  { id: 'p1', title: 'Las probetas del alquimista', intro: 'En la capilla Chigi, sobre el altar, hay tres recipientes de cristal. Una inscripción en latín: «Solo quien mida la mitad exacta verá la luz».', render: renderP1 },
+  { id: 'p2', title: 'El cable de la conspiración', intro: 'Detrás del altar de mármol hay ocho pedestales vacíos y una caja de velas de colores. El pergamino que las acompaña está escrito como un ritual, pero tiene la estructura de un código.', render: renderP2 },
+  { id: 'p3', title: 'El criptograma de piedra', intro: 'Grabado en la losa del altar hay un texto cifrado: cada número es siempre la misma letra. Los Illuminati dejaron aquí su lema.', render: renderP3 },
+  { id: 'p4', title: 'Los cuatro científicos', intro: 'Cuatro medallones con los nombres de cuatro científicos decoran la nave. Según la leyenda, la hermandad los consideraba sus maestros. Un acertijo de lógica revela la verdad sobre cada uno.', render: renderP4 },
+  { id: 'p5', title: 'La constelación oculta', intro: 'El suelo del quinto altar es un fragmento de cielo tallado en mármol negro. Un pergamino del astrónomo dice: «Cinco astros forman una figura que ya habéis visto. Trazad en el cielo el mismo camino que recorristeis en la tierra».', render: renderP5 },
+  { id: 'p6', title: 'La combinación de Copérnico', intro: 'Junto a la tumba hay un cofre con candado de cuatro cifras y un pergamino con cuatro intentos fallidos de abrirlo. El método se llama «toros y vacas».', render: renderP6 },
+  { id: 'p7', title: 'El contenedor del CERN', intro: 'En la cripta de San Clemente, bajo dos iglesias superpuestas, encontráis un contenedor del CERN. Está vacío: es un señuelo. Pero su pantalla aún funciona, a medias, y en la etiqueta alguien ha escrito con rotulador tres condiciones.', render: renderP7 },
+  { id: 'p8', title: 'La luz del óculo', intro: 'En la capilla de San Silvestro, un rayo de sol entra por el óculo del techo. En el suelo hay catorce espejos de bronce que giran, cuatro medallones con los elementos y el altar. Haced que la luz toque los cuatro elementos y llegue al altar.', render: renderP8 }
+];
+function renderPuzzle(st) {
+  const P = PUZ[S.cur], c = CH[S.cur];
+  st.innerHTML = `
+    <div class="kicker">Altar ${ROMAN[S.cur]} · ${c.lat} · ${c.lng}</div>
+    <h1 class="stage-title">${P.title}</h1>
+    <div class="where">${esc(c.name)}</div>
+    <div class="narr"><p>${P.intro}</p></div>
+    <div class="puz slab"><div id="pbody"></div><div class="feedback" id="fb" role="status"></div>${hintBlock()}</div>`;
+  P.render($('#pbody'));
+}
+function solve(id) {
+  if (S.solved.includes(id)) return;
+  S.solved.push(id); const i = PUZ.findIndex(p => p.id === id); save(); Sound.sfx('ok'); renderAltars();
+  const after = (DATA.after || {})[id] || '';
+  let html;
+  if (i < 7) {
+    const n = CH[i + 1];
+    html = `<div class="decoded"><div class="lead">Altar ${ROMAN[i]} superado</div><h2>Nueva señal descifrada</h2>
+      ${after ? `<p>${esc(after)}</p>` : ''}
+      <div class="scr" id="scr"><small>Latitud</small><span id="sLat"></span><small>Longitud</small><span id="sLng"></span></div>
+      <p class="note">Marcadla en el mapa para encontrar el altar ${ROMAN[i + 1]}.</p><button class="btn" id="nextBtn">Seguir el Camino</button></div>`;
+  } else {
+    html = `<div class="decoded"><div class="lead">Altar VIII superado</div><h2>${esc(DATA.p8message)}</h2><p>La luz ha escrito el último mensaje del Camino. Queda anotado en vuestra agenda.</p><button class="btn" id="nextBtn">Salir de la capilla</button></div>`;
+  }
+  const d = overlay(html, false);
+  if (i < 7) { typeOut($('#sLat', d), CH[i + 1].lat, 200); typeOut($('#sLng', d), CH[i + 1].lng, 200 + CH[i + 1].lat.length * 90); }
+  $('#nextBtn', d).addEventListener('click', () => {
+    closeOverlay(d);
+    if (i < 7) { S.cur = i + 1; S.phase = 'locate'; } else S.phase = 'final';
+    save(); renderAll();
+  });
+}
+function typeOut(el, str, delay) { setTimeout(() => { let k = 0; const iv = setInterval(() => { el.textContent = str.slice(0, ++k) + (k < str.length ? '_' : ''); if (k >= str.length) clearInterval(iv); }, 90); }, delay); }
+
+/* P1 · Probetas */
+function renderP1(el) {
+  const caps = [8, 5, 3], names = ['A', 'B', 'C'];
+  const paint = () => {
+    const st = S.p1.st;
+    el.innerHTML = `<p style="margin-top:0">Tres recipientes: A de 8 litros, lleno de agua bendita; B de 5 litros y C de 3 litros, vacíos. Solo podéis volcar uno en otro hasta que el de destino se llene o el de origen se vacíe. No hay marcas intermedias.</p>
+      <p><strong>Objetivo: exactamente 4 litros en A.</strong></p>
+      <div class="beakers">${[0, 1, 2].map(i => `<div class="beaker"><div class="nm">${names[i]}</div><div class="glass" style="height:${caps[i] * 22}px">${[...Array(caps[i] - 1)].map((_, k) => `<span class="tick" style="bottom:${(k + 1) * 22}px"></span>`).join('')}<div class="liq" style="height:${st[i] / caps[i] * 100}%"></div></div><div class="amt">${st[i]} L</div><div class="cap">de ${caps[i]} L</div></div>`).join('')}</div>
+      <div class="pours">${[[0, 1], [0, 2], [1, 0], [1, 2], [2, 0], [2, 1]].map(([f, t]) => `<button type="button" data-f="${f}" data-t="${t}" ${Math.min(st[f], caps[t] - st[t]) ? '' : 'disabled'}>${names[f]} → ${names[t]}</button>`).join('')}</div>
+      <div class="moves">Trasvases: ${S.p1.moves} <button class="btn ghost small" id="p1reset" type="button" style="margin-left:12px">Volver a empezar</button></div>`;
+    $$('.pours button', el).forEach(b => b.addEventListener('click', () => {
+      const f = +b.dataset.f, t = +b.dataset.t, a = Math.min(S.p1.st[f], caps[t] - S.p1.st[t]); if (!a) return;
+      S.p1.st[f] -= a; S.p1.st[t] += a; S.p1.moves++; save(); Sound.sfx('click'); paint();
+      if (S.p1.st[0] === 4) { say('Exactamente 4 litros en A.', true); $$('.pours button', el).forEach(x => x.disabled = true); setTimeout(() => solve('p1'), 1100); }
+    }));
+    $('#p1reset', el).addEventListener('click', () => { S.p1 = { st: [8, 0, 0], moves: 0 }; save(); paint(); });
+  };
+  paint();
+}
+
+/* P2 · Velas / T568B */
+const WIRES = { WO: ['B. naranja', '#E8782E', true], O: ['Naranja', '#E8782E', false], WG: ['B. verde', '#3E9B55', true], B: ['Azul', '#3F67C9', false], WB: ['B. azul', '#3F67C9', true], G: ['Verde', '#3E9B55', false], WM: ['B. marrón', '#7A4A2A', true], M: ['Marrón', '#7A4A2A', false] };
+function renderP2(el) {
+  const keys = Object.keys(WIRES);
+  el.innerHTML = `
+    <div class="doc parch"><div class="inscr">
+      «Para que el mensaje del Cielo no se pierda en el Abismo, el orden es ley. Siete hilos son el puente; el octavo es el sacrificio. Escuchad la voz del arquitecto:<br>
+      I. El puente nace en el alba: la luz teñida de ira abre el camino, seguida de cerca por el fuego puro de la rebelión, que jamás osará ir primero.<br>
+      II. La semilla pálida huye del fuego hacia la tercera morada, separada para siempre de su hermana de sangre.<br>
+      III. En el corazón del puente reside la paz: el zafiro divino ocupa el cuarto trono, entregando su diestra a un cielo fracturado.<br>
+      IV. Ciega y separada de su origen, la hiedra corrupta se retuerce en el sexto vacío, esperando tras el cielo roto.<br>
+      V. El abismo reclama el final. El fango oscuro sella la octava condena, pero la ceniza sagrada debe marchar ante él, como séptimo sacrificio.»
+    </div></div>
+    <p class="muted" style="margin:16px 0 8px">Elegid la vela de cada pedestal, del 1 al 8. «B.» es una vela blanca con raya de color.</p>
+    <div class="altar-row" id="altarRow"></div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap"><button class="btn check" data-label="Encender el ritual" id="p2check">Encender el ritual</button></div>
+    <div id="p2q"></div>`;
+  const row = $('#altarRow', el);
+  const paint = () => {
+    row.innerHTML = S.p2.map((v, i) => { const w = WIRES[v]; return `<div class="candle ${v ? '' : 'off'}"><div class="flame"></div><div class="body ${w && w[2] ? 'stripe' : ''}" style="${w ? (w[2] ? `--c:${w[1]}` : `background:${w[1]}`) : 'background:#3A322C'}"></div><div class="base"></div><span class="no">${i + 1}</span>
+      <select data-i="${i}" aria-label="Vela del pedestal ${i + 1}"><option value="">—</option>${keys.map(k => `<option value="${k}" ${k === v ? 'selected' : ''}>${WIRES[k][0]}</option>`).join('')}</select></div>`; }).join('');
+    $$('select', row).forEach(s => s.addEventListener('change', () => { S.p2[+s.dataset.i] = s.value; save(); paint(); }));
+  };
+  paint();
+  const askQ = () => {
+    $('#p2check', el).closest('div').classList.add('hidden'); $$('select', row).forEach(s => s.disabled = true);
+    $('#p2q', el).innerHTML = `<div class="doc parch" style="margin-top:18px"><h4>Las velas arden en el orden correcto</h4><p style="margin:0">Ese orden no es un ritual: es una norma técnica que se usa en todo el mundo. ¿Cuál?</p></div>
+      <form class="answer-bar" id="qForm" autocomplete="off"><input class="field" id="ans" placeholder="Nombre de la norma o del cable"><button class="btn check" data-label="Responder">Responder</button></form>`;
+    paintLock();
+    $('#qForm', el).addEventListener('submit', e => { e.preventDefault(); if (locked()) return; if (accepts($('#ans').value, DATA.answers.p2q)) solve('p2'); else fail('No es esa. Pensad en los cables de red de vuestro instituto.', $('#ans')); });
+  };
+  if (S.p2ok) askQ();
+  $('#p2check', el).addEventListener('click', () => {
+    if (locked()) return;
+    if (S.p2.some(v => !v)) { say('Falta una vela en algún pedestal.'); return; }
+    const bad = S.p2.filter((v, i) => v !== DATA.answers.p2order[i]).length;
+    if (!bad) { S.p2ok = true; save(); Sound.sfx('bell'); say('El orden es correcto.', true); askQ(); }
+    else fail(bad === 1 ? 'Una vela está fuera de su sitio.' : `${bad} velas están fuera de su sitio.`);
+  });
+}
+
+/* P3 · Criptograma */
+const PHRASE = [[1, 2], [3, 4, 5, 6, 7, 8], [9, 1], [2, 4], [6, 2, 10, 5, 6, 7, 4, 3, 6, 8, 7], [3, 8, 7, 9, 10, 3, 1], [4], [2, 4], [11, 1, 12, 9, 4, 9]];
+function renderP3(el) {
+  const nums = [...new Set(PHRASE.flat())].sort((a, b) => a - b);
+  el.innerHTML = `<p style="margin-top:0">Cada número es siempre la misma letra. Escribid una letra junto a un número y aparecerá en todos los sitios donde está ese número. Solo sabréis si es correcto cuando la frase esté completa.</p>
+    <div class="crypt" id="crypt">${PHRASE.map(w => `<div class="cw">${w.map(n => `<div class="cc" data-n="${n}"><div class="l"></div><div class="k">${n}</div></div>`).join('')}</div>`).join('')}</div>
+    <div class="decoder">${nums.map(n => `<label><span>${n} =</span><input maxlength="1" data-n="${n}" aria-label="Letra del número ${n}" autocomplete="off"></label>`).join('')}</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px"><button class="btn check" data-label="Comprobar la frase" id="p3check">Comprobar la frase</button><button class="btn ghost small" id="p3clear" type="button">Borrar todo</button></div>`;
+  const paint = () => { $$('.cc', el).forEach(c => $('.l', c).textContent = S.p3[c.dataset.n] || ''); $$('.decoder input', el).forEach(i => i.value = S.p3[i.dataset.n] || ''); };
+  $$('.decoder input', el).forEach((inp, idx, all) => {
+    inp.addEventListener('input', () => { const v = inp.value.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-ZÑ]/g, '').slice(-1); if (v) S.p3[inp.dataset.n] = v; else delete S.p3[inp.dataset.n]; save(); paint(); if (v && all[idx + 1]) all[idx + 1].focus(); });
+    inp.addEventListener('focus', () => $$('.cc', el).forEach(c => c.classList.toggle('hl', c.dataset.n === inp.dataset.n)));
+  });
+  $$('.cc', el).forEach(c => c.addEventListener('click', () => { const i = $(`.decoder input[data-n="${c.dataset.n}"]`, el); i && i.focus(); }));
+  $('#p3clear', el).addEventListener('click', () => { S.p3 = {}; save(); paint(); });
+  $('#p3check', el).addEventListener('click', () => {
+    if (locked()) return;
+    if (nums.some(n => !S.p3[n])) { say('Aún quedan números sin letra.'); return; }
+    const phrase = PHRASE.flat().map(n => S.p3[n]).join('');
+    if (phrase === DATA.answers.p3) solve('p3'); else fail('La frase no es correcta todavía.');
+  });
+  paint();
+}
+
+/* P4 · Lógica */
+function renderP4(el) {
+  const sci = ['Galileo', 'Copérnico', 'Kepler', 'Newton'], cols = ['Roma', 'Florencia', 'Pisa', 'Venecia', 'Fuego', 'Tierra', 'Agua', 'Aire'];
+  el.innerHTML = `<p style="margin-top:0">Galileo, Copérnico, Kepler y Newton vivieron cada uno en una ciudad distinta (Roma, Florencia, Pisa y Venecia) y estudiaron cada uno un elemento distinto (fuego, tierra, agua y aire).</p>
+    <ul class="clues"><li>Galileo no vive en Roma.</li><li>El científico que vive en Roma estudia el fuego.</li><li>Copérnico estudia el agua.</li><li>Newton vive en Pisa.</li><li>El que estudia la tierra vive en Florencia.</li><li>Kepler no estudia el aire.</li><li>Copérnico no vive ni en Florencia ni en Pisa.</li></ul>
+    <p class="muted" style="margin:0 0 4px">Tabla de apoyo: tocad una casilla para marcar ✕ (no) o ● (sí).</p>
+    <div style="overflow-x:auto"><table class="lgrid"><thead><tr><th></th>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>${sci.map((s, i) => `<tr><th>${s}</th>${cols.map((c, j) => `<td><button type="button" data-k="${i}-${j}" aria-label="${s}, ${c}"></button></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    <form id="p4form" autocomplete="off">
+      <div class="qrow"><label for="q1">¿Qué elemento estudia Galileo?</label><input class="field" id="q1"></div>
+      <div class="qrow"><label for="q2">¿En qué ciudad vive Copérnico?</label><input class="field" id="q2"></div>
+      <div class="qrow"><label for="q3">¿Qué científico estudia el fuego?</label><input class="field" id="q3"></div>
+      <button class="btn check" data-label="Comprobar" style="margin-top:10px">Comprobar</button></form>`;
+  const paintG = () => $$('.lgrid button', el).forEach(b => { const v = S.p4[b.dataset.k] || ''; b.className = v; b.textContent = v === 'x' ? '✕' : v === 'o' ? '●' : ''; });
+  $$('.lgrid button', el).forEach(b => b.addEventListener('click', () => { const v = S.p4[b.dataset.k] || ''; S.p4[b.dataset.k] = v === '' ? 'x' : v === 'x' ? 'o' : ''; save(); paintG(); }));
+  paintG();
+  $('#p4form', el).addEventListener('submit', e => {
+    e.preventDefault(); if (locked()) return;
+    const a = ['#q1', '#q2', '#q3'].map(q => norm($(q, el).value));
+    if (a.some(x => !x)) { say('Responded a las tres preguntas.'); return; }
+    if (a.every((x, i) => x === DATA.answers.p4[i])) solve('p4'); else fail('Alguna respuesta no es correcta. Revisad la tabla.');
+  });
+}
+
+/* P5 · Estrellas */
+const STARS = [[1, 65, 65], [5, 158, 176], [8, 164, 231], [12, 132, 342], [14, 375, 365], [2, 372, 102], [3, 57, 185], [4, 116, 97], [6, 261, 61], [7, 303, 353], [9, 58, 332], [10, 324, 259], [11, 346, 187], [13, 48, 126], [15, 261, 219], [16, 187, 124], [17, 67, 280], [18, 319, 108]];
+function renderP5(el) {
+  let micro = ''; for (let i = 0; i < 70; i++) { const x = (i * 97) % 440, y = (i * 61 + 23) % 430; micro += `<circle cx="${x}" cy="${y}" r="${(i % 3) * .3 + .4}" fill="#fff" opacity="${.08 + (i % 5) * .04}"/>`; }
+  el.innerHTML = `<svg class="sky" viewBox="0 0 440 430" role="img" aria-label="Mapa de estrellas">${micro}<g id="lines"></g><g id="stars"></g></svg>
+    <div class="chosen" id="chosen"></div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="btn check" data-label="Trazar la constelación" id="p5check">Trazar la constelación</button><button class="btn ghost small" type="button" id="p5undo">Quitar la última</button><button class="btn ghost small" type="button" id="p5clear">Empezar de nuevo</button></div>`;
+  const paint = () => {
+    $('#stars', el).innerHTML = STARS.map(([id, x, y]) => { const k = S.p5.indexOf(id); return `<g class="st" data-id="${id}"><circle cx="${x}" cy="${y}" r="16" fill="transparent"/><circle cx="${x}" cy="${y}" r="${k >= 0 ? 6 : 3.4 + (id % 3) * .7}" fill="${k >= 0 ? '#E8CD8E' : '#BFB8D6'}" opacity="${k >= 0 ? 1 : .7}"/>${k >= 0 ? `<text x="${x + 10}" y="${y - 8}" fill="#E8CD8E" font-size="13" font-family="Cormorant Garamond,serif" font-weight="700">${k + 1}</text>` : ''}</g>`; }).join('');
+    const pts = S.p5.map(id => STARS.find(s => s[0] === id));
+    $('#lines', el).innerHTML = pts.length > 1 ? `<polyline points="${pts.map(p => p[1] + ',' + p[2]).join(' ')}" fill="none" stroke="#C9A45C" stroke-width="1.2" stroke-dasharray="4 4" opacity=".8"/>` : '';
+    $('#chosen', el).innerHTML = [0, 1, 2, 3, 4].map(i => `<span class="${S.p5[i] ? 'f' : ''}">${i + 1}</span>`).join('');
+    $$('.st', el).forEach(g => g.addEventListener('click', () => { const id = +g.dataset.id; if (S.p5.includes(id) || S.p5.length >= 5) return; S.p5.push(id); save(); Sound.sfx('click'); paint(); }));
+  };
+  $('#p5undo', el).addEventListener('click', () => { S.p5.pop(); save(); paint(); });
+  $('#p5clear', el).addEventListener('click', () => { S.p5 = []; save(); paint(); });
+  $('#p5check', el).addEventListener('click', () => {
+    if (locked()) return; if (S.p5.length < 5) { say('Elegid cinco estrellas, en orden.'); return; }
+    if (S.p5.every((id, i) => id === DATA.answers.p5[i])) solve('p5'); else fail('Esa figura no es el camino que recorristeis. Comparadla con el mapa.');
+  });
+  paint();
+}
+
+/* P6 · Mastermind */
+function bulls(g, s) { let t = 0, v = 0; const su = [], gu = []; for (let i = 0; i < 4; i++) if (g[i] === s[i]) { t++; su[i] = gu[i] = 1; } for (let i = 0; i < 4; i++) { if (gu[i]) continue; for (let j = 0; j < 4; j++) if (!su[j] && g[i] === s[j]) { v++; su[j] = 1; break; } } return [t, v]; }
+function renderP6(el) {
+  const FIX = [['A', '1234', 1, 2], ['B', '1580', 2, 0], ['C', '5432', 0, 3], ['D', '2679', 0, 0]];
+  el.innerHTML = `<p style="margin-top:0">El código tiene 4 cifras. <strong>Toro</strong>: cifra correcta en su sitio. <strong>Vaca</strong>: cifra que está en el código, pero en otro sitio.</p>
+    <div class="mm">${FIX.map(([l, g, t, v]) => `<div class="mmrow fixed"><span class="lab">Intento ${l}</span><span class="dg">${g}</span><span class="res"><span class="t">${t} toro${t === 1 ? '' : 's'}</span> · <span class="v">${v} vaca${v === 1 ? '' : 's'}</span></span></div>`).join('')}</div>
+    <p class="muted" style="text-align:center;margin:16px 0 0">Vuestros intentos</p><div class="mm" id="mmh"></div>
+    <form class="mmin" id="mmf" autocomplete="off">${[0, 1, 2, 3].map(i => `<input inputmode="numeric" maxlength="1" data-i="${i}" aria-label="Cifra ${i + 1}">`).join('')}<button class="btn check" data-label="Probar el código">Probar el código</button></form>`;
+  const ins = $$('.mmin input', el);
+  const paint = () => $('#mmh', el).innerHTML = S.p6.map((g, k) => { const [t, v] = bulls(g, DATA.answers.p6); return `<div class="mmrow"><span class="lab">Intento ${k + 1}</span><span class="dg">${g}</span><span class="res"><span class="t">${t} toro${t === 1 ? '' : 's'}</span> · <span class="v">${v} vaca${v === 1 ? '' : 's'}</span></span></div>`; }).join('') || '<p class="muted" style="text-align:center;margin:4px 0">Todavía ninguno.</p>';
+  ins.forEach((inp, i) => {
+    inp.addEventListener('input', () => { inp.value = inp.value.replace(/\D/g, '').slice(-1); if (inp.value && ins[i + 1]) ins[i + 1].focus(); });
+    inp.addEventListener('keydown', e => { if (e.key === 'Backspace' && !inp.value && ins[i - 1]) ins[i - 1].focus(); });
+  });
+  $('#mmf', el).addEventListener('submit', e => {
+    e.preventDefault(); if (locked()) return;
+    const g = ins.map(i => i.value).join(''); if (g.length < 4) { say('Escribid las cuatro cifras.'); return; }
+    S.p6.push(g); save(); paint(); ins.forEach(i => i.value = ''); ins[0].focus();
+    if (g === DATA.answers.p6) solve('p6'); else { const [t, v] = bulls(g, DATA.answers.p6); fail(`${t} toro${t === 1 ? '' : 's'} y ${v} vaca${v === 1 ? '' : 's'}.`); }
+  });
+  paint();
+}
+
+/* P7 · Contenedor (siete segmentos + ambigrama) */
+const P7_LIT = ['fg', 'f', 'bc', 'ac', 'cg', 'fg'];
+function renderP7(el) {
+  el.innerHTML = `
+    <div class="trap">
+      <div class="trap-body"><div class="trap-label">CERN · TRAMPA MAGNÉTICA 7 · PANTALLA DAÑADA</div><div class="screen" id="dmg">${P7_LIT.map(l => seg7(l, 52, 88)).join('')}</div></div>
+      <div class="doc parch" style="max-width:560px"><h4>Etiqueta del contenedor</h4><div class="inscr" style="font-size:1.12rem">Algunos segmentos de la pantalla están fundidos: deberían encenderse y no lo hacen. Los que veis encendidos sí son correctos.<br>· Las seis cifras del código son distintas.<br>· Suman 20.<br>· El código es un número par.</div></div>
+      <p class="repaired-lbl" style="margin:0">Vuestra reparación: elegid la cifra de cada posición</p>
+      <div class="pickers" id="pickers"></div>
+      <div class="trap-body"><div class="screen" id="rep"></div></div>
+      <button class="btn ghost" type="button" id="rotBtn">Girar el contenedor 180°</button>
+    </div>
+    <form class="answer-bar" id="p7form" autocomplete="off"><input class="field" id="ans" placeholder="La palabra que esconde el código"><button class="btn check" data-label="Comprobar">Comprobar</button></form>`;
+  let rot = false;
+  const paint = () => {
+    $('#pickers', el).innerHTML = S.p7.map((d, i) => `<div class="picker"><button type="button" data-i="${i}" data-d="1" aria-label="Subir cifra ${i + 1}">▲</button><span class="val">${d}</span><button type="button" data-i="${i}" data-d="-1" aria-label="Bajar cifra ${i + 1}">▼</button></div>`).join('');
+    $('#rep', el).innerHTML = S.p7.map((d, i) => { const segs = SEGDIG[String(d)]; const ok = [...P7_LIT[i]].every(s => segs.includes(s)); return `<span title="${ok ? '' : 'Esta cifra no encaja con la pantalla dañada'}" style="${ok ? '' : 'outline:1px dashed #C8423A;outline-offset:3px'}">${seg7(segs, 52, 88)}</span>`; }).join('');
+    $$('#pickers button', el).forEach(b => b.addEventListener('click', () => { const i = +b.dataset.i; S.p7[i] = (S.p7[i] + +b.dataset.d + 10) % 10; save(); Sound.sfx('click'); paint(); }));
+  };
+  $('#rotBtn', el).addEventListener('click', () => { rot = !rot; $('#rep', el).classList.toggle('rot', rot); $('#rotBtn', el).textContent = rot ? 'Volver a girar' : 'Girar el contenedor 180°'; Sound.sfx('click'); });
+  $('#p7form', el).addEventListener('submit', e => { e.preventDefault(); if (locked()) return; if (DATA.answers.p7.includes(norm($('#ans').value))) solve('p7'); else fail('No es la palabra. ¿Habéis leído la pantalla reparada desde el otro lado?', $('#ans')); });
+  paint();
+}
+
+/* P8 · Espejos y luz */
+const BEAM = { W: 10, H: 8, altar: [2, 6], targets: [[1, 2], [4, 4], [8, 2], [6, 6]], mirrors: [[1, 4], [5, 4], [5, 1], [8, 1], [8, 6], [3, 2], [1, 6], [7, 3], [3, 0], [9, 4], [6, 7], [0, 2], [3, 5], [6, 2]], grid: ['MPOBCUDNVB', 'TRBCPPAECU', 'PBVDHGBVVO', 'BOBUENPELD', 'VLLODVVGCD', 'UCVBGSUPAR', 'VRNONIHMVL', 'TSMRLCDTPF'] };
+const ELEM = [['Tierra', '#A9824A', 'M-9 -6H9L0 9Z M-6 -1H6'], ['Aire', '#9FC6D6', 'M-9 6H9L0 -9Z M-6 1H6'], ['Fuego', '#E2643A', 'M-9 6H9L0 -9Z'], ['Agua', '#5A92D6', 'M-9 -6H9L0 9Z']];
+function beamTrace(state) {
+  const D = { N: [0, -1], S: [0, 1], E: [1, 0], W: [-1, 0] }, SL = { E: 'N', N: 'E', W: 'S', S: 'W' }, BS = { E: 'S', S: 'E', W: 'N', N: 'W' };
+  let x = 1, y = -1, d = 'S'; const path = [[1, -1]], hit = [], seen = new Set();
+  for (; ;) {
+    x += D[d][0]; y += D[d][1];
+    if (x < 0 || y < 0 || x >= BEAM.W || y >= BEAM.H) { path.push([x, y]); return { ok: false, path, hit }; }
+    const key = x + ',' + y + d; if (seen.has(key)) return { ok: false, path, hit }; seen.add(key); path.push([x, y]);
+    if (x === BEAM.altar[0] && y === BEAM.altar[1]) return { ok: hit.length === 4, path, hit, end: true };
+    const mi = BEAM.mirrors.findIndex(m => m[0] === x && m[1] === y);
+    if (mi >= 0) d = state[mi] === '/' ? SL[d] : BS[d];
+    else { const ti = BEAM.targets.findIndex(t => t[0] === x && t[1] === y); if (ti >= 0 && !hit.includes(ti)) hit.push(ti); }
+  }
+}
+function renderP8(el) {
+  const C = 56, top = 46;
+  el.innerHTML = `<svg class="beam" id="beamSvg" viewBox="0 0 ${BEAM.W * C} ${BEAM.H * C + top}" role="img" aria-label="Suelo de la capilla con espejos"></svg>
+    <div class="elem-legend">${ELEM.map(e => `<span><svg width="22" height="22" viewBox="-11 -11 22 22"><path d="${e[2]}" fill="none" stroke="${e[1]}" stroke-width="1.8"/></svg>${e[0]}</span>`).join('')}<span>Pulsad un espejo para girarlo</span></div>
+    <div class="beam-msg" id="beamMsg" aria-live="polite"></div>`;
+  const svg = $('#beamSvg', el);
+  const isM = (x, y) => BEAM.mirrors.findIndex(m => m[0] === x && m[1] === y), isT = (x, y) => BEAM.targets.findIndex(t => t[0] === x && t[1] === y);
+  const paint = () => {
+    const tr = beamTrace(S.p8), onPath = new Set(tr.path.map(p => p.join(',')));
+    let s = `<defs><filter id="glowb"><feGaussianBlur stdDeviation="3"/></filter><radialGradient id="sun"><stop offset="0" stop-color="#FFF6D0"/><stop offset="1" stop-color="#F2B24A" stop-opacity="0"/></radialGradient></defs>`;
+    s += `<circle cx="${1.5 * C}" cy="18" r="26" fill="url(#sun)"/><text x="${1.5 * C + 30}" y="24" fill="#A89C8E" font-size="14" font-family="Alegreya,serif" font-style="italic">óculo</text>`;
+    for (let y = 0; y < BEAM.H; y++) for (let x = 0; x < BEAM.W; x++) s += `<rect x="${x * C}" y="${y * C + top}" width="${C}" height="${C}" fill="${(x + y) % 2 ? '#211A16' : '#1A1411'}" stroke="#2E251F"/>`;
+    const pts = tr.path.map(([x, y]) => [x * C + C / 2, y * C + top + C / 2]); pts[0] = [1.5 * C, 18];
+    if (!tr.end) { const p = pts[pts.length - 1]; pts[pts.length - 1] = [Math.max(0, Math.min(BEAM.W * C, p[0])), Math.max(top, Math.min(BEAM.H * C + top, p[1]))]; }
+    const pl = pts.map(p => p.join(',')).join(' ');
+    s += `<polyline pointer-events="none" points="${pl}" fill="none" stroke="#F6E7B8" stroke-width="7" opacity=".35" filter="url(#glowb)"/><polyline pointer-events="none" points="${pl}" fill="none" stroke="#FFF6D0" stroke-width="2.2" stroke-linejoin="round"/>`;
+    for (let y = 0; y < BEAM.H; y++) for (let x = 0; x < BEAM.W; x++) {
+      const X = x * C, Y = y * C + top, mi = isM(x, y), ti = isT(x, y);
+      if (mi >= 0) {
+        const st = S.p8[mi], c = { x: X + C / 2, y: Y + C / 2 }, r = C * .36;
+        const [x1, y1, x2, y2] = st === '/' ? [c.x - r, c.y + r, c.x + r, c.y - r] : [c.x - r, c.y - r, c.x + r, c.y + r];
+        s += `<g class="mir" data-m="${mi}" role="button" aria-label="Espejo"><rect class="hit" x="${X + 2}" y="${Y + 2}" width="${C - 4}" height="${C - 4}" fill="transparent"/><circle cx="${c.x}" cy="${c.y}" r="${C * .42}" fill="none" stroke="#5A4A3A" stroke-dasharray="2 4"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#D9B66C" stroke-width="5" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#FFF1C9" stroke-width="1.4" stroke-linecap="round" opacity=".8"/></g>`;
+      } else if (ti >= 0) {
+        const e = ELEM[ti], lit = tr.hit.includes(ti);
+        s += `<circle cx="${X + C / 2}" cy="${Y + C / 2}" r="${C * .4}" fill="${lit ? e[1] + '33' : '#120E0C'}" stroke="${e[1]}" stroke-width="1.5"/><path d="${e[2]}" transform="translate(${X + C / 2} ${Y + C / 2}) scale(1.25)" fill="none" stroke="${e[1]}" stroke-width="1.6"/>`;
+      } else if (x === BEAM.altar[0] && y === BEAM.altar[1]) {
+        s += `<rect x="${X + 6}" y="${Y + 6}" width="${C - 12}" height="${C - 12}" fill="${tr.ok ? '#E8CD8E' : '#2A221D'}" stroke="#C9A45C" stroke-width="2"/><path d="M${X + C / 2} ${Y + 14}V${Y + C - 14}M${X + 18} ${Y + C / 2 - 4}H${X + C - 18}" stroke="${tr.ok ? '#22170B' : '#C9A45C'}" stroke-width="2.5"/>`;
+      } else {
+        const lit = onPath.has(x + ',' + y);
+        s += `<text x="${X + C / 2}" y="${Y + C / 2 + 9}" text-anchor="middle" font-family="Cormorant Garamond,serif" font-weight="700" font-size="27" fill="${lit ? '#FFF1C9' : '#6E6155'}" ${lit ? 'stroke="#1A1411" stroke-width="5" paint-order="stroke"' : ''}>${BEAM.grid[y][x]}</text>`;
+      }
+    }
+    svg.innerHTML = s;
+    $$('.mir', svg).forEach(g => g.addEventListener('click', () => { if (S.solved.includes('p8')) return; const m = +g.dataset.m; S.p8[m] = S.p8[m] === '/' ? '\\' : '/'; save(); Sound.sfx('click'); paint(); }));
+    if (tr.ok && !S.solved.includes('p8')) {
+      const msg = $('#beamMsg', el); let k = 0; Sound.sfx('bell');
+      const iv = setInterval(() => { msg.textContent = DATA.p8message.slice(0, ++k); if (k >= DATA.p8message.length) { clearInterval(iv); setTimeout(() => solve('p8'), 1300); } }, 90);
+    } else if (tr.end) say('La luz llega al altar, pero no ha tocado los cuatro elementos.');
+    else say('');
+  };
+  paint();
+}
+
+/* ═════ Final y baldaquino ═════ */
+function renderFinal(st) {
+  st.innerHTML = `<div class="kicker">El Camino está completo</div><h1 class="stage-title">¿Dónde está la antimateria?</h1>
+    <div class="narr"><p>Habéis recorrido los ocho altares, pero el contenedor no está en ninguno. Los Illuminati lo escondieron donde termina su Camino, no donde termina vuestra lista.</p><p>Recordad el mensaje que escribió la luz en el último altar.</p></div>
+    <div class="puz slab"><div class="msgnote" style="margin:0 0 18px;text-align:center;font-size:1.3rem">${esc(DATA.p8message)}</div>
+      <p style="margin:0">Usad la <strong>regla</strong> del mapa: haced clic sobre dos altares (la regla se engancha a ellos) y la recta se prolonga sola. Cuando sepáis a qué lugar apunta el Camino, escribid su nombre.</p>
+      <form class="answer-bar" id="fForm" autocomplete="off"><input class="field" id="ans" placeholder="Nombre del lugar"><button class="btn check" data-label="Ir allí">Ir allí</button></form>
+      <div class="feedback" id="fb" role="status"></div>${hintBlock()}</div>`;
+  $('#fForm').addEventListener('submit', e => {
+    e.preventDefault(); if (locked()) return;
+    if (accepts($('#ans').value, DATA.answers.final)) {
+      S.phase = 'bonus'; save(); Sound.sfx('bell');
+      const d = overlay(`<div class="decoded"><div class="lead">Localización confirmada</div><h2>San Giovanni in Laterano</h2><p>La catedral de Roma. Corréis hasta el altar mayor: sobre él, bajo un baldaquino gótico, unas rejas de plata guardan, según la tradición, las reliquias de san Pedro y san Pablo.</p><p>El contenedor no está. Solo hay un pergamino lacrado.</p><button class="btn" id="goB">Abrir el pergamino</button></div>`, false);
+      $('#goB', d).addEventListener('click', () => { closeOverlay(d); renderAll(); });
+    } else fail('El Camino no apunta ahí. Trazad la recta con más cuidado.', $('#ans'));
+  });
+}
+function renderBonus(st) {
+  st.innerHTML = `<div class="kicker">San Giovanni in Laterano · altar mayor</div><h1 class="stage-title">El último secreto</h1>
+    <div class="puz slab">
+      <div class="doc parch bonus-doc">
+        <svg class="emblem" viewBox="0 0 200 200" aria-label="Una espada tendida y una llave colgada, cruzadas">
+          <g class="sw"><path d="M18 100H150" stroke-width="7"/><path d="M150 93 182 100 150 107Z"/><path d="M40 82V118" stroke-width="6"/><circle cx="14" cy="100" r="6"/></g>
+          <g class="ky"><circle cx="100" cy="30" r="15" fill="none" stroke-width="6"/><path d="M100 45V178" stroke-width="7"/><path d="M100 150H120M100 166H116M100 178H122" stroke-width="6"/></g>
+        </svg>
+        <div class="inscr">«Dos guardianes custodian la verdad en lo alto del altar: Pedro, con la llave de oro, y Pablo, con la espada de plata. Buscad los altares que llevan su marca y cruzad sus caminos.<br><br>La espada yace tendida, de oriente a poniente, como los paralelos. La llave cuelga, de norte a sur, como los meridianos. Y en Roma la espada siempre habla primero: su altar dicta el primer número; el de la llave, el segundo.<br><br>Donde se cruzan descansa el pintor de los ángeles.»</div></div>
+      <p style="margin:16px 0 0">Mirad la agenda: dos altares tienen una marca. Para dibujar un punto con sus coordenadas, usad <strong>Marcar un punto</strong> en el mapa.</p>
+      <form class="answer-bar" id="bForm" autocomplete="off"><input class="field" id="ans" placeholder="¿Qué lugar es?"><button class="btn check" data-label="Desactivar el contenedor">Desactivar el contenedor</button></form>
+      <div class="feedback" id="fb" role="status"></div>${hintBlock()}</div>`;
+  $('#bForm').addEventListener('submit', e => { e.preventDefault(); if (locked()) return; if (accepts($('#ans').value, DATA.answers.bonus)) win(); else fail('Ahí no está. Comprobad qué coordenada tomáis de cada guardián.', $('#ans')); });
+}
+
+/* ═════ Fin ═════ */
+function win() { S.phase = 'won'; S.finishedAt = Date.now(); save(); Sound.music(false); Sound.sfx('win'); closeAllOverlays(); renderAll(); }
+function lose() { if (S.phase === 'won' || S.phase === 'lost') return; S.phase = 'lost'; S.finishedAt = Date.now(); save(); Sound.music(false); Sound.sfx('lose'); closeAllOverlays(); renderAll(); }
+const official = () => (S.finishedAt - S.startedAt) + S.penalties * 1000;
+const vcode = (team, ms) => { const h = cyrb53(`${norm(team)}|${Math.round(ms / 1000)}|${DATA.salt}`).toString(16).toUpperCase().padStart(8, '0').slice(-8); return h.slice(0, 4) + '-' + h.slice(4); };
+/* Pantalla de victoria: el Camino dibujado sobre un plano de Roma, el sello con el tiempo oficial y el registro. */
+const LATERANO = [41.8859, 12.5062], PANTEON = [41.8984, 12.4769];
+function victoryMap() {
+  const W = 560, H = 470, pad = 46, la0 = 41.9128, la1 = 41.8848, lo0 = 12.4735, lo1 = 12.5085, kx = Math.cos(41.9 * Math.PI / 180);
+  const sc = Math.min((W - 2 * pad) / ((lo1 - lo0) * kx), (H - 2 * pad) / (la0 - la1));
+  const P = (la, lo) => [pad + (lo - lo0) * kx * sc, pad + (la0 - la) * sc].map(v => +v.toFixed(1));
+  const pts = CH.map(c => P(+c.lat, +c.lng)), L8 = P(...LATERANO), PA = P(...PANTEON), A1 = pts[0], A4 = pts[3];
+  const route = 'M' + pts.map(p => p.join(' ')).join(' L');
+  const grid = []; for (let g = 1; g < 8; g++) { grid.push(`<path d="M${g * W / 8} 0V${H}"/>`); grid.push(`<path d="M0 ${g * H / 8}H${W}"/>`); }
+  /* el Tíber, esquemático */
+  const TIB = [[41.9150, 12.4752], [41.9118, 12.4738], [41.9085, 12.4728], [41.9050, 12.4722], [41.9015, 12.4705], [41.8985, 12.4690], [41.8955, 12.4695], [41.8930, 12.4725], [41.8908, 12.4768], [41.8885, 12.4788], [41.8860, 12.4785], [41.8830, 12.4775]].map(q => P(...q));
+  const tiber = 'M' + TIB.map(q => q.join(' ')).join(' L');
+  return `<svg class="vmap" viewBox="0 0 ${W} ${H}" role="img" aria-label="Plano del Camino de la Iluminación">
+    <defs><radialGradient id="vglow"><stop offset="0" stop-color="#F3D58A" stop-opacity=".9"/><stop offset="1" stop-color="#F3D58A" stop-opacity="0"/></radialGradient></defs>
+    <rect width="${W}" height="${H}" fill="#191310"/>
+    <g class="vgrid">${grid.join('')}</g>
+    <path class="vtiber" d="${tiber}"/><text class="vlbl t" x="${TIB[2][0] + 14}" y="${TIB[2][1]}" transform="rotate(80 ${TIB[2][0] + 14} ${TIB[2][1]})">TEVERE</text>
+    <text class="vlbl r" x="${W - 18}" y="30" text-anchor="end">ROMA · MDCLXXXVIII</text>
+    <path class="vext" d="M${pts[7].join(' ')} L${L8.join(' ')}" pathLength="1"/>
+    <path class="vroute" d="${route}" pathLength="1"/>
+    <path class="vlat" d="M${A4.join(' ')} H${PA[0]}" pathLength="1"/><path class="vlng" d="M${A1.join(' ')} V${PA[1]}" pathLength="1"/>
+    ${pts.map((p, i) => `<g class="vpin" style="--d:${(0.35 + i * 0.32).toFixed(2)}s" transform="translate(${p[0]} ${p[1]})"><circle r="12"/><text dy="4">${ROMAN[i]}</text></g>`).join('')}
+    <g class="vend" transform="translate(${L8[0]} ${L8[1]})"><circle r="9"/><text x="14" y="5">Laterano</text></g>
+    <g class="vpan" transform="translate(${PA[0]} ${PA[1]})"><circle class="halo" r="46" fill="url(#vglow)"/><path d="M0-17L4-4 17 0 4 4 0 17-4 4-17 0-4-4Z"/><text x="-22" y="5" text-anchor="end">Panteón</text></g>
+  </svg>`;
+}
+function seal(time) {
+  const ring = 'CAMINO DE LA ILUMINACIÓN ✦ ROMA MDCLXXXVIII ✦ ';
+  return `<svg class="seal" viewBox="0 0 240 240" aria-hidden="true">
+    <defs><path id="sealRing" d="M120 120 m-92 0 a92 92 0 1 1 184 0 a92 92 0 1 1 -184 0"/></defs>
+    <circle cx="120" cy="120" r="116" class="s1"/><circle cx="120" cy="120" r="106" class="s2"/><circle cx="120" cy="120" r="78" class="s3"/>
+    <text class="sring"><textPath href="#sealRing" textLength="570" lengthAdjust="spacing">${ring}</textPath></text>
+    <text x="120" y="96" text-anchor="middle" class="sk">Tiempo oficial</text>
+    <text x="120" y="138" text-anchor="middle" class="st">${time}</text>
+    <path d="M92 158H148" class="s2"/><text x="120" y="178" text-anchor="middle" class="sk">${esc(S.team.slice(0, 18))}</text>
+  </svg>`;
+}
+function renderVictory() {
+  const real = S.finishedAt - S.startedAt, off = official(), hints = Object.values(S.hints).reduce((a, b) => a + b, 0);
+  const story = DATA.story.slice(0, -1), quote = DATA.story[DATA.story.length - 1];
+  $('#victory').innerHTML = `<div class="vic">
+    <header class="vic-head">
+      <div class="vic-k">Roma · al amanecer</div>
+      <h1>Antimateria<br><em>neutralizada</em></h1>
+      <p>El equipo <b>«${esc(S.team)}»</b> ha recorrido el Camino de la Iluminación y ha desconectado el contenedor bajo el óculo del Panteón.</p>
+    </header>
+    <div class="vic-main">
+      <figure class="vic-map">${victoryMap()}<figcaption>Los ocho altares apuntan al Laterano. La espada (latitud del IV) y la llave (longitud del I) se cruzan en el Panteón.</figcaption></figure>
+      <aside class="vic-side">
+        ${seal(fmt(off))}
+        <dl class="vic-stats"><div><dt>Tiempo real</dt><dd>${fmt(real)}</dd></div><div><dt>Penalización</dt><dd>+${fmt(S.penalties * 1000)}</dd></div><div><dt>Pistas</dt><dd>${hints}</dd></div></dl>
+        <div class="vic-code"><span>Código de verificación</span><b>${vcode(S.team, off)}</b><small>Enseñádselo al profesor</small></div>
+      </aside>
+    </div>
+    <ol class="vic-route">${CH.map((c, i) => `<li><b>${ROMAN[i]}</b><span>${esc(c.name)}</span></li>`).join('')}<li class="x"><b>✦</b><span>San Giovanni in Laterano</span></li><li class="x"><b>✦</b><span>Panteón</span></li></ol>
+    <div class="vic-story">${story.map(p => `<p>${esc(p)}</p>`).join('')}<blockquote>${esc(quote)}</blockquote></div>
+    <div class="end-actions"><button class="btn" id="printBtn">Imprimir certificado</button><button class="btn ghost" id="againBtn">Nueva misión</button></div>
+  </div>`;
+  $('#printBtn').addEventListener('click', () => print());
+  $('#againBtn').addEventListener('click', () => confirmBox('¿Empezar una misión nueva?', 'Se borrará esta partida de este ordenador.', 'Empezar de nuevo', resetGame));
+}
+function renderLost(st) {
+  st.innerHTML = `<div id="gameover"><div class="modal slab" style="text-align:center"><h2>La batería se ha agotado</h2><p>El campo magnético se ha apagado. Al otro lado de Roma, un destello blanco ilumina la noche durante una fracción de segundo.</p><p class="muted">Habéis superado ${S.solved.length} de 8 altares.</p>
+    <div class="actions" style="justify-content:center"><button class="btn ghost" id="solBtn">Ver el Camino completo</button><button class="btn" id="againBtn">Nueva misión</button></div></div></div>`;
+  $('#solBtn').addEventListener('click', () => overlay(`<div class="modal parch"><h2 style="color:var(--stone-ink)">El Camino completo</h2>${routeList()}<div class="actions"><button class="btn" data-close>Cerrar</button></div></div>`));
+  $('#againBtn').addEventListener('click', () => confirmBox('¿Empezar una misión nueva?', 'Se borrará esta partida de este ordenador.', 'Empezar de nuevo', resetGame));
+}
+function resetGame() { store.del(KEY); S = null; clearInterval(tickT); closeAside(); Sound.music(false); if (map) { map.remove(); map = null; } show('intro'); $('#teamName').value = ''; }
+
+/* ═════ Modo profesor ═════ */
+let teacherOK = false;
+function teacherLogin() {
+  if (teacherOK) { teacherPanel(); return; }
+  const d = overlay(`<div class="modal slab"><h2>Modo profesor</h2><form id="pinForm"><input id="pin" class="field" type="password" inputmode="numeric" placeholder="PIN" autocomplete="off"><div class="feedback" id="pinFb"></div><div class="actions"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn">Entrar</button></div></form></div>`);
+  $('#pinForm', d).addEventListener('submit', e => { e.preventDefault(); if ($('#pin', d).value === DATA.pin) { teacherOK = true; closeOverlay(d); teacherPanel(); } else $('#pinFb', d).textContent = 'PIN incorrecto.'; });
+}
+function currentAnswer() {
+  if (!S) return '';
+  if (S.phase === 'locate') return `${CH[S.cur].name} (${CH[S.cur].lat}, ${CH[S.cur].lng})`;
+  if (S.phase === 'puzzle') return { p1: 'A→B, B→C, C→A, B→C, A→B, B→C, C→A', p2: 'Blanco-naranja, naranja, blanco-verde, azul, blanco-azul, verde, blanco-marrón, marrón. Pregunta: Ethernet / T568B', p3: 'EL CAMINO DE LA ILUMINACIÓN CONDUCE A LA VERDAD', p4: 'Tierra · Venecia · Kepler', p5: 'Las estrellas que dibujan los altares I a V', p6: '1543', p7: 'Código 501734 → girado: HELIOS', p8: 'Espejos de los giros: fila 5 col 2 «\\», fila 5 col 6 «/», fila 2 col 6 «/», fila 2 col 9 «\\», fila 7 col 9 «/»' }['p' + (S.cur + 1)];
+  if (S.phase === 'final') return 'San Giovanni in Laterano';
+  if (S.phase === 'bonus') return 'El Panteón (41.8984, 12.4769)';
+  return '';
+}
+function teacherSkip() {
+  if (S.phase === 'locate') { S.mapped[S.cur] = S.located[S.cur] = true; S.phase = 'puzzle'; save(); renderAll(); }
+  else if (S.phase === 'puzzle') solve('p' + (S.cur + 1));
+  else if (S.phase === 'final') { S.phase = 'bonus'; save(); renderAll(); }
+  else if (S.phase === 'bonus') win();
+}
+function teacherPanel() {
+  const active = S && !['won', 'lost'].includes(S.phase);
+  const d = overlay(`<div class="modal slab"><h2>Modo profesor</h2><p class="muted">${S ? `Equipo «${esc(S.team)}». Quedan ${fmt(remaining())}.` : 'No hay partida en curso.'}</p>
+    <div class="tpanel">${active ? `<div class="row"><button class="btn small" id="tAns">Ver la respuesta actual</button><button class="btn small" id="tSkip">Saltar este paso</button></div>
+      <div class="row"><button class="btn small ghost" id="tPlus">Añadir 5 minutos</button><button class="btn small ghost" id="tMinus">Quitar 5 minutos</button></div>` : ''}
+      ${S ? '<div class="row"><button class="btn small red" id="tReset">Borrar la partida</button></div>' : ''}<output id="tOut"></output>
+      <h3 style="font-family:var(--display);margin:.6em 0 0;color:var(--gilt-hi)">Verificar un código de victoria</h3>
+      <div class="row"><input class="field" id="vTeam" placeholder="Equipo" style="flex:2 1 140px"><input class="field" id="vTime" placeholder="mm:ss" style="flex:1 1 80px"><input class="field" id="vCode" placeholder="XXXX-XXXX" style="flex:1 1 120px"><button class="btn small" id="vBtn">Verificar</button></div><output id="vOut"></output></div>
+    <div class="actions"><button class="btn ghost" data-close>Cerrar</button></div></div>`);
+  const out = $('#tOut', d);
+  if (active) {
+    $('#tAns', d).addEventListener('click', () => out.textContent = currentAnswer());
+    $('#tSkip', d).addEventListener('click', () => { closeOverlay(d); teacherSkip(); });
+    $('#tPlus', d).addEventListener('click', () => { S.deadline += 300000; S.penalties -= 300; save(); tick(); out.textContent = 'Quedan ' + fmt(remaining()); });
+    $('#tMinus', d).addEventListener('click', () => { S.deadline -= 300000; S.penalties += 300; save(); tick(); out.textContent = 'Quedan ' + fmt(remaining()); });
+  }
+  if ($('#tReset', d)) $('#tReset', d).addEventListener('click', () => { closeOverlay(d); confirmBox('¿Borrar la partida?', 'Se perderá todo el progreso en este ordenador.', 'Borrar', resetGame); });
+  $('#vBtn', d).addEventListener('click', () => { const m = $('#vTime', d).value.match(/(\d+)\D+(\d+)/); if (!m) { $('#vOut', d).textContent = 'Escribid el tiempo como mm:ss.'; return; } $('#vOut', d).textContent = vcode($('#vTeam', d).value, (+m[1] * 60 + +m[2]) * 1000) === $('#vCode', d).value.trim().toUpperCase() ? '✓ Código válido.' : '✕ El código no coincide.'; });
+}
+let clicks = 0;
+document.addEventListener('click', e => { if (!e.target.closest('#credit,#brand')) return; clicks++; clearTimeout(window._ck); window._ck = setTimeout(() => clicks = 0, 1500); if (clicks >= 5) { clicks = 0; teacherLogin(); } });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { const o = $$('#overlayRoot .overlay').pop(); if (o && o._esc) { closeOverlay(o); return; } closeAside(); }
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'P' || e.key === 'p')) { e.preventDefault(); teacherLogin(); }
+});
+
+/* ═════ Arranque ═════ */
+function begin() { Sound.init(); Sound.music(S.phase !== 'won' && S.phase !== 'lost'); paintSound(); clearInterval(tickT); tickT = setInterval(tick, 250); renderAll(); }
+$('#sig0lat').textContent = CH[0].lat; $('#sig0lng').textContent = CH[0].lng;
+$('#startForm').addEventListener('submit', e => { e.preventDefault(); const t = $('#teamName').value.trim(); if (!t) return; S = newState(t); save(); begin(); });
+$('#soundBtn').addEventListener('click', () => { Sound.init(); Sound.toggle(); });
+$('#mapToggle').addEventListener('click', openAside); $('#asideClose').addEventListener('click', closeAside); $('#scrim').addEventListener('click', closeAside);
+$('#rulerBtn').addEventListener('click', () => { rulerMode = !rulerMode; rulerPts = []; $('#rulerBtn').classList.toggle('on', rulerMode); if (rulerLayer) rulerLayer.clearLayers(); drawRuler(); });
+$('#freeBtn').addEventListener('click', () => { $('#freeForm').classList.toggle('hidden'); $('#freeBtn').classList.toggle('on'); });
+$('#fitBtn').addEventListener('click', fitAll);
+$('#freeForm').addEventListener('submit', e => {
+  e.preventDefault(); const la = parseFloat($('#freeLat').value.replace(',', '.')), lo = parseFloat($('#freeLng').value.replace(',', '.'));
+  if (isNaN(la) || isNaN(lo) || la < 41 || la > 43 || lo < 12 || lo > 13) { $('#rulerOut').textContent = 'Esas coordenadas no están en Roma.'; return; }
+  S.free.push([+la.toFixed(4), +lo.toFixed(4)]); save(); drawMap(false); if (map) map.flyTo([la, lo], 17, { duration: 1 }); $('#freeLat').value = $('#freeLng').value = '';
+});
+(function boot() {
+  paintSound();
+  const saved = store.get(KEY);
+  if (!saved || saved.v !== 2) { show('intro'); return; }
+  S = saved;
+  if (!['won', 'lost'].includes(S.phase) && remaining() <= 0) { S.phase = 'lost'; S.finishedAt = S.deadline; save(); }
+  if (!['won', 'lost'].includes(S.phase)) {
+    show('intro');
+    const d = overlay(`<div class="modal slab"><h2>Hay una misión en curso</h2><p>El equipo «${esc(S.team)}» tiene una partida a medias en este ordenador. Quedan ${fmt(remaining())}: el reloj ha seguido corriendo.</p><div class="actions"><button class="btn ghost" id="rNew">Empezar de cero</button><button class="btn" id="rGo">Continuar la misión</button></div></div>`, false);
+    $('#rGo', d).addEventListener('click', () => { closeOverlay(d); begin(); });
+    $('#rNew', d).addEventListener('click', () => { closeOverlay(d); resetGame(); });
+  } else begin();
+})();
+
+</script>
+</body>
+</html>
